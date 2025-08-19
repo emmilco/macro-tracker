@@ -460,6 +460,11 @@ const App: React.FC = () => {
         setDailyEntry(entry);
       }
 
+      // At this point entry is guaranteed to be non-null
+      if (!entry) {
+        throw new Error("Failed to create or retrieve daily entry");
+      }
+
       // Create food entry with snapshot of food data
       const foodEntry = await dbUtils.createFoodEntry({
         daily_entry_id: entry.id,

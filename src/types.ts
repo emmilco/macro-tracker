@@ -48,3 +48,13 @@ export interface MacroTargets {
   carbs: number;
   fat: number;
 }
+
+export type DayType = "workout" | "rest";
+
+export interface AddFoodFormData {
+  name: string;
+  portion_size: string;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
