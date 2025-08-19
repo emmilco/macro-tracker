@@ -365,6 +365,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddFoodForm, setShowAddFoodForm] = useState(false);
   const [newFoodForm, setNewFoodForm] = useState({
     name: "",
     portion_size: "",
@@ -726,90 +727,100 @@ const App: React.FC = () => {
 
             {/* Add New Food */}
             <div className={styles.addFoodForm}>
-              <h2 className={styles.sectionTitle}>Add New Food</h2>
-              <form onSubmit={handleAddNewFood} className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Name</label>
-                  <input
-                    type="text"
-                    className={styles.formInput}
-                    value={newFoodForm.name}
-                    onChange={(e) =>
-                      setNewFoodForm({ ...newFoodForm, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Portion Size</label>
-                  <input
-                    type="text"
-                    className={styles.formInput}
-                    value={newFoodForm.portion_size}
-                    onChange={(e) =>
-                      setNewFoodForm({
-                        ...newFoodForm,
-                        portion_size: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Protein (g)</label>
-                  <input
-                    type="number"
-                    className={styles.formInput}
-                    value={newFoodForm.protein}
-                    onChange={(e) =>
-                      setNewFoodForm({
-                        ...newFoodForm,
-                        protein: Number(e.target.value),
-                      })
-                    }
-                    min="0"
-                    step="0.1"
-                    required
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Carbs (g)</label>
-                  <input
-                    type="number"
-                    className={styles.formInput}
-                    value={newFoodForm.carbs}
-                    onChange={(e) =>
-                      setNewFoodForm({
-                        ...newFoodForm,
-                        carbs: Number(e.target.value),
-                      })
-                    }
-                    min="0"
-                    step="0.1"
-                    required
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Fat (g)</label>
-                  <input
-                    type="number"
-                    className={styles.formInput}
-                    value={newFoodForm.fat}
-                    onChange={(e) =>
-                      setNewFoodForm({
-                        ...newFoodForm,
-                        fat: Number(e.target.value),
-                      })
-                    }
-                    min="0"
-                    step="0.1"
-                    required
-                  />
-                </div>
-                <button type="submit" className={styles.submitButton}>
-                  Add Food
-                </button>
-              </form>
+              <div
+                className={styles.addFoodHeader}
+                onClick={() => setShowAddFoodForm(!showAddFoodForm)}
+              >
+                <h2 className={styles.sectionTitle}>Add New Food</h2>
+                <span className={styles.toggleIcon}>
+                  {showAddFoodForm ? "−" : "+"}
+                </span>
+              </div>
+              {showAddFoodForm && (
+                <form onSubmit={handleAddNewFood} className={styles.formGrid}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Name</label>
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      value={newFoodForm.name}
+                      onChange={(e) =>
+                        setNewFoodForm({ ...newFoodForm, name: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Portion Size</label>
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      value={newFoodForm.portion_size}
+                      onChange={(e) =>
+                        setNewFoodForm({
+                          ...newFoodForm,
+                          portion_size: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Protein (g)</label>
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      value={newFoodForm.protein}
+                      onChange={(e) =>
+                        setNewFoodForm({
+                          ...newFoodForm,
+                          protein: Number(e.target.value),
+                        })
+                      }
+                      min="0"
+                      step="0.1"
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Carbs (g)</label>
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      value={newFoodForm.carbs}
+                      onChange={(e) =>
+                        setNewFoodForm({
+                          ...newFoodForm,
+                          carbs: Number(e.target.value),
+                        })
+                      }
+                      min="0"
+                      step="0.1"
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Fat (g)</label>
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      value={newFoodForm.fat}
+                      onChange={(e) =>
+                        setNewFoodForm({
+                          ...newFoodForm,
+                          fat: Number(e.target.value),
+                        })
+                      }
+                      min="0"
+                      step="0.1"
+                      required
+                    />
+                  </div>
+                  <button type="submit" className={styles.submitButton}>
+                    Add Food
+                  </button>
+                </form>
+              )}
             </div>
 
             {/* Food Database */}
