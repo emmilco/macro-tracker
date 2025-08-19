@@ -672,6 +672,13 @@ body {
   margin-top: 2rem;
 }
 
+/* Modal Form Grid (always visible) */
+.modalFormGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .formGroup {
   display: flex;
   flex-direction: column;

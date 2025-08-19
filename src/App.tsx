@@ -275,7 +275,7 @@ const EditFoodModal: React.FC<EditFoodModalProps> = ({
             ×
           </button>
         </div>
-        <form onSubmit={handleSubmit} className={styles.formGrid}>
+        <form onSubmit={handleSubmit} className={styles.modalFormGrid}>
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Name</label>
             <input
