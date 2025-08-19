@@ -19,6 +19,16 @@ export const dbUtils = {
     return data;
   },
 
+  async getRecentlyAddedFoods(limit = 3) {
+    const { data, error } = await supabase
+      .from("foods")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data;
+  },
+
   async createFood(food: Omit<Food, "id" | "frequency">) {
     const { data, error } = await supabase
       .from("foods")

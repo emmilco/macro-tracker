@@ -359,6 +359,7 @@ const App: React.FC = () => {
   >("today");
   const [dayType, setDayType] = useState<"workout" | "rest">("workout");
   const [foods, setFoods] = useState<Food[]>([]);
+  const [recentlyAddedFoods, setRecentlyAddedFoods] = useState<Food[]>([]);
   const [dailyEntry, setDailyEntry] = useState<DailyEntry | null>(null);
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -393,8 +394,14 @@ const App: React.FC = () => {
           }
           const newFoodsData = await dbUtils.getFoods();
           setFoods(newFoodsData);
+          // Load recently added foods after populating defaults
+          const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
+          setRecentlyAddedFoods(recentFoodsData);
         } else {
           setFoods(foodsData);
+          // Load recently added foods
+          const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
+          setRecentlyAddedFoods(recentFoodsData);
         }
 
         // Load settings
@@ -524,6 +531,11 @@ const App: React.FC = () => {
     try {
       const newFood = await dbUtils.createFood(newFoodForm);
       setFoods([...foods, newFood]);
+
+      // Update recently added foods
+      const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
+      setRecentlyAddedFoods(recentFoodsData);
+
       setNewFoodForm({
         name: "",
         portion_size: "",
@@ -551,6 +563,11 @@ const App: React.FC = () => {
       setFoods(
         foods.map((food) => (food.id === updatedFood.id ? updatedFood : food))
       );
+
+      // Update recently added foods in case the edited food is in the recent list
+      const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
+      setRecentlyAddedFoods(recentFoodsData);
+
       setShowEditModal(false);
       setEditingFood(null);
     } catch (error) {
@@ -564,6 +581,10 @@ const App: React.FC = () => {
       try {
         await dbUtils.deleteFood(food.id);
         setFoods(foods.filter((f) => f.id !== food.id));
+
+        // Update recently added foods in case the deleted food was in the recent list
+        const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
+        setRecentlyAddedFoods(recentFoodsData);
       } catch (error) {
         console.error("Error deleting food:", error);
       }
@@ -832,6 +853,24 @@ const App: React.FC = () => {
                 </div>
               </form>
             </div>
+
+            {/* Recently Added Foods */}
+            {recentlyAddedFoods.length > 0 && (
+              <div className={styles.foodSection}>
+                <h2 className={styles.sectionTitle}>Recently Added Foods</h2>
+                <div className={styles.recentFoodGrid}>
+                  {recentlyAddedFoods.map((food) => (
+                    <FoodTile
+                      key={food.id}
+                      food={food}
+                      onAddFood={handleAddFood}
+                      onEditFood={handleEditFood}
+                      onDeleteFood={handleDeleteFood}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Food Database */}
             <div className={styles.foodSection}>
