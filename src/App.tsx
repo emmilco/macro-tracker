@@ -531,6 +531,8 @@ const App: React.FC = () => {
         carbs: 0,
         fat: 0,
       });
+      // Collapse the form after successful submission
+      setShowAddFoodForm(false);
     } catch (error) {
       console.error("Error adding new food:", error);
     }
@@ -732,12 +734,20 @@ const App: React.FC = () => {
                 onClick={() => setShowAddFoodForm(!showAddFoodForm)}
               >
                 <h2 className={styles.sectionTitle}>Add New Food</h2>
-                <span className={styles.toggleIcon}>
+                <span
+                  className={`${styles.toggleIcon} ${
+                    showAddFoodForm ? styles.expanded : ""
+                  }`}
+                >
                   {showAddFoodForm ? "−" : "+"}
                 </span>
               </div>
-              {showAddFoodForm && (
-                <form onSubmit={handleAddNewFood} className={styles.formGrid}>
+              <form onSubmit={handleAddNewFood}>
+                <div
+                  className={`${styles.formGrid} ${
+                    showAddFoodForm ? styles.expanded : ""
+                  }`}
+                >
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>Name</label>
                     <input
@@ -819,8 +829,8 @@ const App: React.FC = () => {
                   <button type="submit" className={styles.submitButton}>
                     Add Food
                   </button>
-                </form>
-              )}
+                </div>
+              </form>
             </div>
 
             {/* Food Database */}

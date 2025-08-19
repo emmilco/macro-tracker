@@ -3,7 +3,7 @@
   --protein-color: #d97098;
   --carbs-color: #5fa877;
   --fat-color: #e6a852;
-  --primary-gradient: linear-gradient(135deg, #6b7fce 0%, #7c63a8 100%);
+  --primary-gradient: linear-gradient(135deg, #475569 0%, #64748b 100%);
   --background: #fafbfc;
   --surface: #ffffff;
   --text-primary: #2d3748;
@@ -11,7 +11,7 @@
   --border: #e2e8f0;
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.1);
-  --border-radius: 12px;
+  --border-radius: 8px;
 }
 
 * {
@@ -126,8 +126,8 @@ body {
 }
 
 .navTab.active {
-  color: #6b7fce;
-  border-bottom-color: #6b7fce;
+  color: #475569;
+  border-bottom-color: #475569;
 }
 
 /* Main Content */
@@ -163,7 +163,7 @@ body {
   height: 200px;
   position: relative;
   background: #f7fafc;
-  border-radius: 30px;
+  border-radius: 3px;
   overflow: hidden;
   border: 2px solid var(--border);
 }
@@ -173,14 +173,14 @@ body {
   bottom: 0;
   width: 100%;
   background: rgba(0, 0, 0, 0.05);
-  border-radius: 30px;
+  border-radius: 0;
 }
 
 .macroBarFill {
   position: absolute;
   bottom: 0;
   width: 100%;
-  border-radius: 30px;
+  border-radius: 0;
   transition: height 0.5s ease;
 }
 
@@ -240,7 +240,7 @@ body {
 .foodTile:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-hover);
-  border-color: #6b7fce;
+  border-color: #475569;
 }
 
 .foodTileHeader {
@@ -395,7 +395,7 @@ body {
 
 .multiplierButton:hover {
   background: var(--background);
-  border-color: #6b7fce;
+  border-color: #475569;
 }
 
 .multiplierValue {
@@ -425,12 +425,80 @@ body {
   padding: 2rem;
   box-shadow: var(--shadow);
   margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.addFoodHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 1rem;
+  margin: -1rem;
+  transition: all 0.3s ease;
+  border-radius: var(--border-radius);
+  user-select: none;
+}
+
+.addFoodHeader:hover {
+  background: var(--background);
+  transform: translateY(-1px);
+}
+
+.toggleIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggleIcon.expanded {
+  transform: rotate(180deg);
+}
+
+.addFoodHeader:hover .toggleIcon {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.addFoodHeader:hover .toggleIcon.expanded {
+  transform: scale(1.1) rotate(180deg);
+}
+
+.addFoodHeader .sectionTitle {
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.addFoodHeader:hover .sectionTitle {
+  color: var(--text-primary);
 }
 
 .formGrid {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  margin-top: 1.5rem;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(-10px);
+}
+
+.formGrid.expanded {
+  opacity: 1;
+  max-height: 1000px;
+  transform: translateY(0);
+  margin-top: 2rem;
 }
 
 .formGroup {
@@ -455,8 +523,8 @@ body {
 
 .formInput:focus {
   outline: none;
-  border-color: #6b7fce;
-  box-shadow: 0 0 0 3px rgba(107, 127, 206, 0.1);
+  border-color: #475569;
+  box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
 }
 
 .submitButton {
