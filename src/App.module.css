@@ -1,291 +1,570 @@
-/* src/App.module.css */
+/* CSS Variables */
+:root {
+  --protein-color: #d97098;
+  --carbs-color: #5fa877;
+  --fat-color: #e6a852;
+  --primary-gradient: linear-gradient(135deg, #6b7fce 0%, #7c63a8 100%);
+  --background: #fafbfc;
+  --surface: #ffffff;
+  --text-primary: #2d3748;
+  --text-secondary: #718096;
+  --border: #e2e8f0;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.1);
+  --border-radius: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
 
 .app {
   min-height: 100vh;
-  background: var(--background);
-}
-
-.main {
-  flex: 1;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-4);
-}
-
-/* Loading and Error States */
-.loading,
-.error {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  text-align: center;
-  gap: var(--space-4);
 }
 
-.loadingSpinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--border-light);
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+/* Header */
+.header {
+  background: var(--primary-gradient);
+  color: white;
+  padding: 1.5rem 2rem;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
 }
 
-.error h2 {
-  color: #dc2626;
-  margin-bottom: var(--space-2);
-}
-
-.error p {
-  color: var(--text-secondary);
-  margin-bottom: var(--space-4);
-}
-
-/* Tab Content */
-.todayTab,
-.historyTab,
-.settingsTab {
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Food Section */
-.foodSection {
-  margin-bottom: var(--space-8);
-}
-
-.sectionHeader {
+.headerContent {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.sectionHeader h2 {
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
   margin: 0;
+}
+
+.dayTypeToggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  padding: 4px;
+  backdrop-filter: blur(10px);
+}
+
+.dayTypeButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: white;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.dayTypeButton.active {
+  background: rgba(255, 255, 255, 0.9);
   color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation */
+.nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+}
+
+.navTabs {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.navTab {
+  padding: 1rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.navTab:hover {
+  color: var(--text-primary);
+}
+
+.navTab.active {
+  color: #6b7fce;
+  border-bottom-color: #6b7fce;
+}
+
+/* Main Content */
+.main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Macro Progress */
+.macroProgress {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: var(--surface);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.macroBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.macroBarChart {
+  width: 60px;
+  height: 200px;
+  position: relative;
+  background: #f7fafc;
+  border-radius: 30px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+
+.macroBarBackground {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 30px;
+}
+
+.macroBarFill {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  border-radius: 30px;
+  transition: height 0.5s ease;
+}
+
+.proteinBar {
+  background: linear-gradient(to top, var(--protein-color), #e8a3c0);
+}
+
+.carbsBar {
+  background: linear-gradient(to top, var(--carbs-color), #8bc7a0);
+}
+
+.fatBar {
+  background: linear-gradient(to top, var(--fat-color), #f0c478);
+}
+
+.macroLabel {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.macroValues {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Food Grid */
+.foodSection {
+  margin-bottom: 3rem;
+}
+
+.sectionTitle {
   font-size: 1.5rem;
   font-weight: 600;
-}
-
-.addButton {
-  background: var(--primary-gradient);
-  border: none;
-  color: white;
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--shadow-sm);
-}
-
-.addButton:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
 }
 
 .foodGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-4);
+  gap: 1.5rem;
 }
 
-/* Today's Foods Section */
-.todayFoodsSection {
+.foodTile {
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
+  border: 2px solid var(--border);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: var(--shadow);
 }
 
-.todayFoodsSection h2 {
-  margin: 0 0 var(--space-5) 0;
-  color: var(--text-primary);
-  font-size: 1.5rem;
-  font-weight: 600;
+.foodTile:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: #6b7fce;
 }
 
-.todayFoodsList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.todayFoodItem {
-  background: var(--background);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+.foodTileHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: var(--space-4);
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
 }
 
-.foodInfo {
-  flex: 1;
-}
-
-.foodInfo h3 {
-  margin: 0 0 var(--space-1) 0;
-  font-size: 1rem;
+.foodName {
   font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.foodActions {
+  position: relative;
+}
+
+.foodMenu {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.foodMenu:hover {
+  background: var(--border);
   color: var(--text-primary);
 }
 
-.foodInfo p {
-  margin: 0 0 var(--space-2) 0;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+.foodMenuDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-hover);
+  z-index: 10;
+  min-width: 120px;
 }
 
-.macros {
+.foodMenuOption {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  color: var(--text-primary);
+}
+
+.foodMenuOption:hover {
+  background: var(--background);
+}
+
+.foodMenuOption.delete {
+  color: #e53e3e;
+}
+
+.portionSize {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.macroInfo {
   display: flex;
-  gap: var(--space-3);
-  font-size: 0.875rem;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.frequency {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--primary-gradient);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
-.protein {
-  color: var(--protein-color);
+/* Today's Foods */
+.todaysFoods {
+  background: var(--surface);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
 }
 
-.carbs {
-  color: var(--carbs-color);
+.todayFood {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background: var(--background);
 }
 
-.fat {
-  color: var(--fat-color);
+.todayFoodInfo {
+  flex: 1;
 }
 
-.foodControls {
+.todayFoodName {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.todayFoodMacros {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.todayFoodControls {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 1rem;
 }
 
-.multiplierInput {
-  width: 70px;
+.multiplierControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.multiplierButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.multiplierButton:hover {
+  background: var(--background);
+  border-color: #6b7fce;
+}
+
+.multiplierValue {
+  min-width: 40px;
   text-align: center;
-  padding: var(--space-2);
-  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .removeButton {
-  padding: var(--space-2) var(--space-3);
-  font-size: 0.875rem;
+  padding: 0.5rem;
+  background: #fed7d7;
+  color: #e53e3e;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* Settings Tab */
+.removeButton:hover {
+  background: #feb2b2;
+}
+
+/* Add Food Form */
+.addFoodForm {
+  background: var(--surface);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+}
+
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formLabel {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.formInput {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+  background: var(--surface);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #6b7fce;
+  box-shadow: 0 0 0 3px rgba(107, 127, 206, 0.1);
+}
+
+.submitButton {
+  padding: 0.75rem 2rem;
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.submitButton:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Settings */
 .settingsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
 }
 
 .settingsCard {
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
 }
 
-.cardHeader {
+.settingsCardHeader {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-5);
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.cardIcon {
-  font-size: 2rem;
-  width: 64px;
-  height: 64px;
+.settingsIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.5rem;
   background: var(--primary-gradient);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
+  color: white;
 }
 
-.cardHeader h3 {
-  margin: 0;
+.settingsCardTitle {
   font-size: 1.25rem;
   font-weight: 600;
+  margin: 0;
+}
+
+.settingsForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.macroInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.macroInputRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.macroInputLabel {
+  min-width: 80px;
+  font-weight: 500;
   color: var(--text-primary);
 }
 
-.settingsInputs {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+.macroInput {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
 }
 
-.inputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.inputGroup label {
-  font-size: 0.875rem;
-  font-weight: 500;
+.macroUnit {
   color: var(--text-secondary);
-}
-
-.inputGroup input {
-  font-size: 1rem;
-  padding: var(--space-3);
+  font-size: 0.9rem;
+  min-width: 20px;
 }
 
 .calorieInfo {
-  background: var(--border-light);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-secondary);
   text-align: center;
-}
-
-/* History Tab */
-.historyTab {
-  text-align: center;
-  padding: var(--space-8);
-}
-
-.comingSoon {
+  padding: 1rem;
+  background: var(--background);
+  border-radius: 8px;
   color: var(--text-secondary);
-  font-size: 1.1rem;
-  margin-top: var(--space-4);
+  font-size: 0.9rem;
 }
 
 /* Modal */
-.modal {
+.modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -296,80 +575,70 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: var(--space-4);
 }
 
-.modalContent {
+.modal {
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  border-radius: var(--border-radius);
+  padding: 2rem;
   max-width: 500px;
-  width: 100%;
-  box-shadow: var(--shadow-xl);
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-.modalContent h3 {
-  margin: 0 0 var(--space-4) 0;
-  font-size: 1.25rem;
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.modalTitle {
+  font-size: 1.5rem;
   font-weight: 600;
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.closeButton:hover {
   color: var(--text-primary);
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
-  .container {
-    padding: var(--space-4) var(--space-3);
+  .header {
+    padding: 1rem;
   }
-  
+
+  .headerContent {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .main {
+    padding: 1rem;
+  }
+
+  .macroProgress {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
   .foodGrid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: var(--space-3);
+    grid-template-columns: 1fr;
   }
-  
-  .sectionHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-3);
-  }
-  
-  .addButton {
-    align-self: stretch;
-    text-align: center;
-  }
-  
-  .todayFoodItem {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-3);
-  }
-  
-  .foodControls {
-    align-self: stretch;
-    justify-content: space-between;
-  }
-  
+
   .settingsGrid {
     grid-template-columns: 1fr;
-    gap: var(--space-4);
-  }
-  
-  .cardHeader {
-    flex-direction: column;
-    text-align: center;
-    gap: var(--space-2);
-  }
-}
-
-@media (max-width: 480px) {
-  .foodGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .modal {
-    padding: var(--space-2);
-  }
-  
-  .modalContent {
-    padding: var(--space-4);
   }
 }

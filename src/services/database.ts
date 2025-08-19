@@ -1,6 +1,6 @@
 // src/services/database.ts
 
-import { supabase } from "../lib/supabase";
+import { supabase } from "../supabase";
 import type {
   Food,
   DailyEntry,

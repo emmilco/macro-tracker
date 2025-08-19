@@ -1,530 +1,994 @@
-// src/App.tsx
-
-import React, { useState, useEffect } from "react";
-import { Header } from "./components/Header/Header";
-import { Navigation } from "./components/Navigation/Navigation";
-import { MacroProgress } from "./components/MacroProgress/MacroProgress";
-import { FoodTile } from "./components/FoodTile/FoodTile";
-import { AddFoodForm } from "./components/AddFoodForm/AddFoodForm";
-import { History } from "./components/History/History";
-import { initializeDatabase, seedDefaultData } from "./lib/supabase";
-import {
-  getAllFoods,
-  getTodayEntry,
-  createDailyEntry,
-  updateDailyEntryType,
-  getFoodEntriesForDay,
-  addFoodToDay,
-  removeFoodFromDay,
-  updateFoodEntryMultiplier,
-  getUserSettings,
-  updateUserSettings,
-  addFood,
-  updateFood,
-  deleteFood,
-  formatDate,
-  calculateCalories,
-} from "./services/database";
+import React, { useState, useEffect, useCallback } from "react";
+import { dbUtils } from "./supabase";
 import type {
   Food,
   DailyEntry,
   FoodEntry,
   UserSettings,
-  DayType,
-  Tab,
-  MacroTargets,
   MacroTotals,
-  AddFoodFormData,
+  MacroTargets,
 } from "./types";
-import "./styles/global.css";
 import styles from "./App.module.css";
 
-export const App: React.FC = () => {
-  // State management
-  const [activeTab, setActiveTab] = useState<Tab>("today");
-  const [dayType, setDayType] = useState<DayType>("workout");
+// Utility functions
+const calculateMacros = (foodEntries: FoodEntry[]): MacroTotals => {
+  const totals = foodEntries.reduce(
+    (acc, entry) => ({
+      protein: acc.protein + entry.food_protein * entry.multiplier,
+      carbs: acc.carbs + entry.food_carbs * entry.multiplier,
+      fat: acc.fat + entry.food_fat * entry.multiplier,
+      calories:
+        acc.calories +
+        (entry.food_protein * 4 + entry.food_carbs * 4 + entry.food_fat * 9) *
+          entry.multiplier,
+    }),
+    { protein: 0, carbs: 0, fat: 0, calories: 0 }
+  );
+
+  return {
+    protein: Math.round(totals.protein),
+    carbs: Math.round(totals.carbs),
+    fat: Math.round(totals.fat),
+    calories: Math.round(totals.calories),
+  };
+};
+
+const getTargets = (
+  settings: UserSettings | null,
+  dayType: "workout" | "rest"
+): MacroTargets => {
+  if (!settings) {
+    return dayType === "workout"
+      ? { protein: 180, carbs: 250, fat: 80 }
+      : { protein: 180, carbs: 150, fat: 100 };
+  }
+
+  return dayType === "workout"
+    ? {
+        protein: settings.workout_protein,
+        carbs: settings.workout_carbs,
+        fat: settings.workout_fat,
+      }
+    : {
+        protein: settings.rest_protein,
+        carbs: settings.rest_carbs,
+        fat: settings.rest_fat,
+      };
+};
+
+const formatDate = (date: Date): string => {
+  return date.toISOString().split("T")[0];
+};
+
+// Default foods to populate the database
+const defaultFoods = [
+  {
+    name: "8oz Ground Beef (93/7)",
+    portion_size: "8 oz serving",
+    protein: 48,
+    carbs: 0,
+    fat: 16,
+  },
+  {
+    name: "1 cup Jasmine Rice",
+    portion_size: "1 cup cooked",
+    protein: 8,
+    carbs: 52,
+    fat: 1,
+  },
+  {
+    name: "1 Large Banana",
+    portion_size: "1 large (126g)",
+    protein: 1,
+    carbs: 27,
+    fat: 0,
+  },
+  {
+    name: "2 Whole Eggs",
+    portion_size: "2 large eggs",
+    protein: 12,
+    carbs: 1,
+    fat: 10,
+  },
+  {
+    name: "1 cup Broccoli",
+    portion_size: "1 cup chopped",
+    protein: 3,
+    carbs: 6,
+    fat: 0,
+  },
+  {
+    name: "1 tbsp Olive Oil",
+    portion_size: "1 tablespoon",
+    protein: 0,
+    carbs: 0,
+    fat: 14,
+  },
+  {
+    name: "Chicken Thigh",
+    portion_size: "180g cooked",
+    protein: 45,
+    carbs: 0,
+    fat: 14,
+  },
+  {
+    name: "Chicken Breast",
+    portion_size: "180g cooked",
+    protein: 58,
+    carbs: 0,
+    fat: 6,
+  },
+  { name: "Shrimp", portion_size: "6oz", protein: 28, carbs: 0, fat: 0 },
+  { name: "Tilapia", portion_size: "4oz", protein: 23, carbs: 0, fat: 2 },
+];
+
+// Components
+interface MacroBarProps {
+  label: string;
+  current: number;
+  target: number;
+  color: string;
+}
+
+const MacroBar: React.FC<MacroBarProps> = ({
+  label,
+  current,
+  target,
+  color,
+}) => {
+  const percentage = Math.min((current / target) * 100, 100);
+  const height = `${percentage}%`;
+
+  return (
+    <div className={styles.macroBar}>
+      <div className={styles.macroBarChart}>
+        <div className={styles.macroBarBackground} style={{ height: "100%" }} />
+        <div
+          className={`${styles.macroBarFill} ${styles[`${color}Bar`]}`}
+          style={{ height }}
+        />
+      </div>
+      <div className={styles.macroLabel}>{label}</div>
+      <div className={styles.macroValues}>
+        {current}g / {target}g
+      </div>
+    </div>
+  );
+};
+
+interface FoodTileProps {
+  food: Food;
+  onAddFood: (food: Food) => void;
+  onEditFood: (food: Food) => void;
+  onDeleteFood: (food: Food) => void;
+}
+
+const FoodTile: React.FC<FoodTileProps> = ({
+  food,
+  onAddFood,
+  onEditFood,
+  onDeleteFood,
+}) => {
+  const [showMenu, setShowMenu] = useState(false);
+
+  return (
+    <div className={styles.foodTile} onClick={() => onAddFood(food)}>
+      <div className={styles.foodTileHeader}>
+        <h3 className={styles.foodName}>{food.name}</h3>
+        <div className={styles.foodActions}>
+          <button
+            className={styles.foodMenu}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+          >
+            ⋯
+          </button>
+          {showMenu && (
+            <div className={styles.foodMenuDropdown}>
+              <button
+                className={styles.foodMenuOption}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditFood(food);
+                  setShowMenu(false);
+                }}
+              >
+                Edit
+              </button>
+              <button
+                className={`${styles.foodMenuOption} ${styles.delete}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteFood(food);
+                  setShowMenu(false);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {food.frequency > 0 && (
+        <div className={styles.frequency}>{food.frequency}×</div>
+      )}
+      <div className={styles.portionSize}>{food.portion_size}</div>
+      <div className={styles.macroInfo}>
+        <span>P: {food.protein}</span>
+        <span>C: {food.carbs}</span>
+        <span>F: {food.fat}</span>
+      </div>
+    </div>
+  );
+};
+
+interface EditFoodModalProps {
+  food: Food | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (food: Food) => void;
+}
+
+const EditFoodModal: React.FC<EditFoodModalProps> = ({
+  food,
+  isOpen,
+  onClose,
+  onSave,
+}) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    portion_size: "",
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
+
+  useEffect(() => {
+    if (food) {
+      setFormData({
+        name: food.name,
+        portion_size: food.portion_size,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+      });
+    }
+  }, [food]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (food) {
+      onSave({ ...food, ...formData });
+    }
+  };
+
+  if (!isOpen || !food) return null;
+
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modal}>
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle}>Edit Food</h2>
+          <button className={styles.closeButton} onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Name</label>
+            <input
+              type="text"
+              className={styles.formInput}
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Portion Size</label>
+            <input
+              type="text"
+              className={styles.formInput}
+              value={formData.portion_size}
+              onChange={(e) =>
+                setFormData({ ...formData, portion_size: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Protein (g)</label>
+            <input
+              type="number"
+              className={styles.formInput}
+              value={formData.protein}
+              onChange={(e) =>
+                setFormData({ ...formData, protein: Number(e.target.value) })
+              }
+              min="0"
+              step="0.1"
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Carbs (g)</label>
+            <input
+              type="number"
+              className={styles.formInput}
+              value={formData.carbs}
+              onChange={(e) =>
+                setFormData({ ...formData, carbs: Number(e.target.value) })
+              }
+              min="0"
+              step="0.1"
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Fat (g)</label>
+            <input
+              type="number"
+              className={styles.formInput}
+              value={formData.fat}
+              onChange={(e) =>
+                setFormData({ ...formData, fat: Number(e.target.value) })
+              }
+              min="0"
+              step="0.1"
+              required
+            />
+          </div>
+          <button type="submit" className={styles.submitButton}>
+            Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Main App Component
+const App: React.FC = () => {
+  // State
+  const [currentTab, setCurrentTab] = useState<
+    "today" | "history" | "settings"
+  >("today");
+  const [dayType, setDayType] = useState<"workout" | "rest">("workout");
   const [foods, setFoods] = useState<Food[]>([]);
   const [dailyEntry, setDailyEntry] = useState<DailyEntry | null>(null);
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showAddFoodForm, setShowAddFoodForm] = useState(false);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [newFoodForm, setNewFoodForm] = useState({
+    name: "",
+    portion_size: "",
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
 
-  // Initialize the app
+  const today = formatDate(new Date());
+  const currentMacros = calculateMacros(foodEntries);
+  const targets = getTargets(settings, dailyEntry?.day_type || dayType);
+
+  // Load initial data
   useEffect(() => {
-    const initApp = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
 
-        // Initialize database and seed data
-        const dbInitialized = await initializeDatabase();
-        if (dbInitialized) {
-          await seedDefaultData();
+        // Load foods
+        const foodsData = await dbUtils.getFoods();
+        if (foodsData.length === 0) {
+          // Populate with default foods if empty
+          for (const food of defaultFoods) {
+            await dbUtils.createFood(food);
+          }
+          const newFoodsData = await dbUtils.getFoods();
+          setFoods(newFoodsData);
+        } else {
+          setFoods(foodsData);
         }
 
-        // Load initial data
-        await Promise.all([loadFoods(), loadSettings(), loadTodayEntry()]);
-      } catch (err) {
-        console.error("Failed to initialize app:", err);
-        setError("Failed to initialize application. Please refresh the page.");
+        // Load settings
+        const settingsData = await dbUtils.getSettings();
+        if (!settingsData) {
+          // Create default settings
+          const defaultSettings = {
+            workout_protein: 180,
+            workout_carbs: 250,
+            workout_fat: 80,
+            rest_protein: 180,
+            rest_carbs: 150,
+            rest_fat: 100,
+          };
+          await dbUtils.updateSettings(defaultSettings);
+          setSettings({ id: "1", ...defaultSettings });
+        } else {
+          setSettings(settingsData);
+        }
+
+        // Load today's entry
+        const todayEntry = await dbUtils.getDailyEntry(today);
+        if (todayEntry) {
+          setDailyEntry(todayEntry);
+          setDayType(todayEntry.day_type);
+          const entries = await dbUtils.getFoodEntries(todayEntry.id);
+          setFoodEntries(entries);
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    initApp();
-  }, []);
+    loadData();
+  }, [today]);
 
-  // Load today's entry when day type changes
-  useEffect(() => {
-    if (dailyEntry) {
-      updateDayType(dayType);
-    }
-  }, [dayType]);
-
-  // Data loading functions
-  const loadFoods = async () => {
-    const foodsData = await getAllFoods();
-    setFoods(foodsData);
-  };
-
-  const loadSettings = async () => {
-    const settingsData = await getUserSettings();
-    setSettings(settingsData);
-  };
-
-  const loadTodayEntry = async () => {
-    const today = formatDate(new Date());
-    let entry = await getTodayEntry(today);
-
-    if (!entry) {
-      entry = await createDailyEntry(today, dayType);
-    } else {
-      setDayType(entry.day_type);
-    }
-
-    setDailyEntry(entry);
-
-    if (entry) {
-      const entries = await getFoodEntriesForDay(entry.id);
-      setFoodEntries(entries);
-    }
-  };
-
-  // Event handlers
-  const handleDayTypeChange = async (newDayType: DayType) => {
+  // Handle day type change
+  const handleDayTypeChange = async (newDayType: "workout" | "rest") => {
     setDayType(newDayType);
-  };
 
-  const updateDayType = async (newDayType: DayType) => {
-    if (dailyEntry && dailyEntry.day_type !== newDayType) {
+    if (dailyEntry) {
       try {
-        const updatedEntry = await updateDailyEntryType(
+        const updatedEntry = await dbUtils.updateDailyEntryType(
           dailyEntry.id,
           newDayType
         );
         setDailyEntry(updatedEntry);
-      } catch (err) {
-        console.error("Failed to update day type:", err);
+      } catch (error) {
+        console.error("Error updating day type:", error);
       }
     }
   };
 
-  const handleAddFood = async (food: Food, multiplier: number = 1) => {
-    if (!dailyEntry) return;
-
+  // Add food to today's meals
+  const handleAddFood = async (food: Food) => {
     try {
-      const newEntry = await addFoodToDay(dailyEntry.id, food, multiplier);
-      setFoodEntries((prev) => [...prev, newEntry]);
+      let entry = dailyEntry;
 
-      // Update food frequency in local state
-      setFoods((prev) =>
-        prev
-          .map((f) =>
-            f.id === food.id ? { ...f, frequency: f.frequency + 1 } : f
-          )
-          .sort((a, b) => b.frequency - a.frequency)
-      );
-    } catch (err) {
-      console.error("Failed to add food:", err);
-      setError("Failed to add food to your day");
+      // Create daily entry if it doesn't exist
+      if (!entry) {
+        entry = await dbUtils.createDailyEntry(today, dayType);
+        setDailyEntry(entry);
+      }
+
+      // Create food entry with snapshot of food data
+      const foodEntry = await dbUtils.createFoodEntry({
+        daily_entry_id: entry.id,
+        food_id: food.id,
+        multiplier: 1,
+        food_name: food.name,
+        food_portion_size: food.portion_size,
+        food_protein: food.protein,
+        food_carbs: food.carbs,
+        food_fat: food.fat,
+      });
+
+      setFoodEntries([...foodEntries, foodEntry]);
+
+      // Increment food frequency
+      await dbUtils.incrementFoodFrequency(food.id);
+      const updatedFoods = await dbUtils.getFoods();
+      setFoods(updatedFoods);
+    } catch (error) {
+      console.error("Error adding food:", error);
     }
   };
 
-  const handleRemoveFood = async (entryId: string) => {
-    try {
-      await removeFoodFromDay(entryId);
-      setFoodEntries((prev) => prev.filter((entry) => entry.id !== entryId));
-    } catch (err) {
-      console.error("Failed to remove food:", err);
-      setError("Failed to remove food");
-    }
-  };
-
+  // Update food entry multiplier
   const handleUpdateMultiplier = async (
     entryId: string,
-    multiplier: number
+    newMultiplier: number
   ) => {
+    if (newMultiplier < 0.25) return;
+
     try {
-      const updatedEntry = await updateFoodEntryMultiplier(entryId, multiplier);
-      setFoodEntries((prev) =>
-        prev.map((entry) => (entry.id === entryId ? updatedEntry : entry))
+      await dbUtils.updateFoodEntryMultiplier(entryId, newMultiplier);
+      setFoodEntries(
+        foodEntries.map((entry) =>
+          entry.id === entryId ? { ...entry, multiplier: newMultiplier } : entry
+        )
       );
-    } catch (err) {
-      console.error("Failed to update multiplier:", err);
-      setError("Failed to update quantity");
+    } catch (error) {
+      console.error("Error updating multiplier:", error);
     }
   };
 
-  const handleCreateFood = async (foodData: AddFoodFormData) => {
+  // Remove food entry
+  const handleRemoveFoodEntry = async (entryId: string) => {
     try {
-      const newFood = await addFood(foodData);
-      setFoods((prev) => [...prev, newFood]);
-      setShowAddFoodForm(false);
-    } catch (err) {
-      console.error("Failed to create food:", err);
-      setError("Failed to create food");
+      await dbUtils.deleteFoodEntry(entryId);
+      setFoodEntries(foodEntries.filter((entry) => entry.id !== entryId));
+    } catch (error) {
+      console.error("Error removing food entry:", error);
     }
   };
 
+  // Add new food
+  const handleAddNewFood = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const newFood = await dbUtils.createFood(newFoodForm);
+      setFoods([...foods, newFood]);
+      setNewFoodForm({
+        name: "",
+        portion_size: "",
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+      });
+    } catch (error) {
+      console.error("Error adding new food:", error);
+    }
+  };
+
+  // Edit food
   const handleEditFood = (food: Food) => {
     setEditingFood(food);
+    setShowEditModal(true);
   };
 
-  const handleUpdateFood = async (foodData: AddFoodFormData) => {
-    if (!editingFood) return;
-
+  // Save edited food
+  const handleSaveEditedFood = async (updatedFood: Food) => {
     try {
-      const updatedFood = await updateFood(editingFood.id, foodData);
-      setFoods((prev) =>
-        prev.map((f) => (f.id === editingFood.id ? updatedFood : f))
+      await dbUtils.updateFood(updatedFood.id, updatedFood);
+      setFoods(
+        foods.map((food) => (food.id === updatedFood.id ? updatedFood : food))
       );
+      setShowEditModal(false);
       setEditingFood(null);
-    } catch (err) {
-      console.error("Failed to update food:", err);
-      setError("Failed to update food");
+    } catch (error) {
+      console.error("Error updating food:", error);
     }
   };
 
+  // Delete food
   const handleDeleteFood = async (food: Food) => {
-    if (!confirm(`Are you sure you want to delete "${food.name}"?`)) return;
+    if (confirm(`Are you sure you want to delete "${food.name}"?`)) {
+      try {
+        await dbUtils.deleteFood(food.id);
+        setFoods(foods.filter((f) => f.id !== food.id));
+      } catch (error) {
+        console.error("Error deleting food:", error);
+      }
+    }
+  };
 
+  // Update settings
+  const handleUpdateSettings = async (
+    newSettings: Omit<UserSettings, "id">
+  ) => {
     try {
-      await deleteFood(food.id);
-      setFoods((prev) => prev.filter((f) => f.id !== food.id));
-    } catch (err) {
-      console.error("Failed to delete food:", err);
-      setError("Failed to delete food");
+      const updated = await dbUtils.updateSettings(newSettings);
+      setSettings(updated);
+    } catch (error) {
+      console.error("Error updating settings:", error);
     }
-  };
-
-  const handleUpdateSettings = async (newSettings: Partial<UserSettings>) => {
-    try {
-      const updatedSettings = await updateUserSettings(newSettings);
-      setSettings(updatedSettings);
-    } catch (err) {
-      console.error("Failed to update settings:", err);
-      setError("Failed to update settings");
-    }
-  };
-
-  // Calculate current macro totals
-  const getCurrentTotals = (): MacroTotals => {
-    const totals = foodEntries.reduce(
-      (acc, entry) => ({
-        protein: acc.protein + entry.food_protein * entry.multiplier,
-        carbs: acc.carbs + entry.food_carbs * entry.multiplier,
-        fat: acc.fat + entry.food_fat * entry.multiplier,
-        calories: 0, // Will be calculated below
-      }),
-      { protein: 0, carbs: 0, fat: 0, calories: 0 }
-    );
-
-    totals.calories = calculateCalories(
-      totals.protein,
-      totals.carbs,
-      totals.fat
-    );
-    return totals;
-  };
-
-  // Get current macro targets based on day type
-  const getCurrentTargets = (): MacroTargets => {
-    if (!settings) {
-      return { protein: 180, carbs: 250, fat: 80 }; // Default workout targets
-    }
-
-    return dayType === "workout"
-      ? {
-          protein: settings.workout_protein,
-          carbs: settings.workout_carbs,
-          fat: settings.workout_fat,
-        }
-      : {
-          protein: settings.rest_protein,
-          carbs: settings.rest_carbs,
-          fat: settings.rest_fat,
-        };
   };
 
   if (loading) {
     return (
-      <div className={styles.loading}>
-        <div className={styles.loadingSpinner}></div>
-        <p>Loading MacroTracker...</p>
-      </div>
+      <div style={{ padding: "2rem", textAlign: "center" }}>Loading...</div>
     );
   }
-
-  if (error) {
-    return (
-      <div className={styles.error}>
-        <h2>Something went wrong</h2>
-        <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Reload Page</button>
-      </div>
-    );
-  }
-
-  const currentTotals = getCurrentTotals();
-  const currentTargets = getCurrentTargets();
 
   return (
     <div className={styles.app}>
-      <Header dayType={dayType} onDayTypeChange={handleDayTypeChange} />
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
+          <h1 className={styles.title}>Macro Tracker</h1>
+          <div className={styles.dayTypeToggle}>
+            <button
+              className={`${styles.dayTypeButton} ${
+                dayType === "workout" ? styles.active : ""
+              }`}
+              onClick={() => handleDayTypeChange("workout")}
+            >
+              💪 Workout
+            </button>
+            <button
+              className={`${styles.dayTypeButton} ${
+                dayType === "rest" ? styles.active : ""
+              }`}
+              onClick={() => handleDayTypeChange("rest")}
+            >
+              🧘 Rest
+            </button>
+          </div>
+        </div>
+      </header>
 
+      {/* Navigation */}
+      <nav className={styles.nav}>
+        <div className={styles.navTabs}>
+          <button
+            className={`${styles.navTab} ${
+              currentTab === "today" ? styles.active : ""
+            }`}
+            onClick={() => setCurrentTab("today")}
+          >
+            Today
+          </button>
+          <button
+            className={`${styles.navTab} ${
+              currentTab === "history" ? styles.active : ""
+            }`}
+            onClick={() => setCurrentTab("history")}
+          >
+            History
+          </button>
+          <button
+            className={`${styles.navTab} ${
+              currentTab === "settings" ? styles.active : ""
+            }`}
+            onClick={() => setCurrentTab("settings")}
+          >
+            Settings
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Content */}
       <main className={styles.main}>
-        <div className={styles.container}>
-          {activeTab === "today" && (
-            <div className={styles.todayTab}>
-              <MacroProgress targets={currentTargets} totals={currentTotals} />
+        {currentTab === "today" && (
+          <>
+            {/* Macro Progress */}
+            <div className={styles.macroProgress}>
+              <MacroBar
+                label="Protein"
+                current={currentMacros.protein}
+                target={targets.protein}
+                color="protein"
+              />
+              <MacroBar
+                label="Carbs"
+                current={currentMacros.carbs}
+                target={targets.carbs}
+                color="carbs"
+              />
+              <MacroBar
+                label="Fat"
+                current={currentMacros.fat}
+                target={targets.fat}
+                color="fat"
+              />
+            </div>
 
-              <div className={styles.foodSection}>
-                <div className={styles.sectionHeader}>
-                  <h2>Available Foods</h2>
-                  <button
-                    className={styles.addButton}
-                    onClick={() => setShowAddFoodForm(true)}
-                  >
-                    + Add Food
-                  </button>
+            {/* Today's Foods */}
+            {foodEntries.length > 0 && (
+              <div className={styles.todaysFoods}>
+                <h2 className={styles.sectionTitle}>Today's Foods</h2>
+                {foodEntries.map((entry) => (
+                  <div key={entry.id} className={styles.todayFood}>
+                    <div className={styles.todayFoodInfo}>
+                      <div className={styles.todayFoodName}>
+                        {entry.food_name} × {entry.multiplier}
+                      </div>
+                      <div className={styles.todayFoodMacros}>
+                        P: {Math.round(entry.food_protein * entry.multiplier)}g,
+                        C: {Math.round(entry.food_carbs * entry.multiplier)}g,
+                        F: {Math.round(entry.food_fat * entry.multiplier)}g
+                      </div>
+                    </div>
+                    <div className={styles.todayFoodControls}>
+                      <div className={styles.multiplierControls}>
+                        <button
+                          className={styles.multiplierButton}
+                          onClick={() =>
+                            handleUpdateMultiplier(
+                              entry.id,
+                              entry.multiplier - 0.25
+                            )
+                          }
+                        >
+                          −
+                        </button>
+                        <span className={styles.multiplierValue}>
+                          {entry.multiplier}
+                        </span>
+                        <button
+                          className={styles.multiplierButton}
+                          onClick={() =>
+                            handleUpdateMultiplier(
+                              entry.id,
+                              entry.multiplier + 0.25
+                            )
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                      <button
+                        className={styles.removeButton}
+                        onClick={() => handleRemoveFoodEntry(entry.id)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add New Food */}
+            <div className={styles.addFoodForm}>
+              <h2 className={styles.sectionTitle}>Add New Food</h2>
+              <form onSubmit={handleAddNewFood} className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Name</label>
+                  <input
+                    type="text"
+                    className={styles.formInput}
+                    value={newFoodForm.name}
+                    onChange={(e) =>
+                      setNewFoodForm({ ...newFoodForm, name: e.target.value })
+                    }
+                    required
+                  />
                 </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Portion Size</label>
+                  <input
+                    type="text"
+                    className={styles.formInput}
+                    value={newFoodForm.portion_size}
+                    onChange={(e) =>
+                      setNewFoodForm({
+                        ...newFoodForm,
+                        portion_size: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Protein (g)</label>
+                  <input
+                    type="number"
+                    className={styles.formInput}
+                    value={newFoodForm.protein}
+                    onChange={(e) =>
+                      setNewFoodForm({
+                        ...newFoodForm,
+                        protein: Number(e.target.value),
+                      })
+                    }
+                    min="0"
+                    step="0.1"
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Carbs (g)</label>
+                  <input
+                    type="number"
+                    className={styles.formInput}
+                    value={newFoodForm.carbs}
+                    onChange={(e) =>
+                      setNewFoodForm({
+                        ...newFoodForm,
+                        carbs: Number(e.target.value),
+                      })
+                    }
+                    min="0"
+                    step="0.1"
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Fat (g)</label>
+                  <input
+                    type="number"
+                    className={styles.formInput}
+                    value={newFoodForm.fat}
+                    onChange={(e) =>
+                      setNewFoodForm({
+                        ...newFoodForm,
+                        fat: Number(e.target.value),
+                      })
+                    }
+                    min="0"
+                    step="0.1"
+                    required
+                  />
+                </div>
+                <button type="submit" className={styles.submitButton}>
+                  Add Food
+                </button>
+              </form>
+            </div>
 
-                <div className={styles.foodGrid}>
-                  {foods.map((food) => (
-                    <FoodTile
-                      key={food.id}
-                      food={food}
-                      onAddFood={handleAddFood}
-                      onEditFood={handleEditFood}
-                      onDeleteFood={handleDeleteFood}
+            {/* Food Database */}
+            <div className={styles.foodSection}>
+              <h2 className={styles.sectionTitle}>Food Database</h2>
+              <div className={styles.foodGrid}>
+                {foods.map((food) => (
+                  <FoodTile
+                    key={food.id}
+                    food={food}
+                    onAddFood={handleAddFood}
+                    onEditFood={handleEditFood}
+                    onDeleteFood={handleDeleteFood}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {currentTab === "settings" && settings && (
+          <div className={styles.settingsGrid}>
+            {/* Workout Day Settings */}
+            <div className={styles.settingsCard}>
+              <div className={styles.settingsCardHeader}>
+                <div className={styles.settingsIcon}>💪</div>
+                <h3 className={styles.settingsCardTitle}>
+                  Workout Day Targets
+                </h3>
+              </div>
+              <div className={styles.settingsForm}>
+                <div className={styles.macroInputGroup}>
+                  <div className={styles.macroInputRow}>
+                    <label className={styles.macroInputLabel}>Protein:</label>
+                    <input
+                      type="number"
+                      className={styles.macroInput}
+                      value={settings.workout_protein}
+                      onChange={(e) =>
+                        handleUpdateSettings({
+                          ...settings,
+                          workout_protein: Number(e.target.value),
+                        })
+                      }
+                      min="0"
                     />
-                  ))}
+                    <span className={styles.macroUnit}>g</span>
+                  </div>
+                  <div className={styles.macroInputRow}>
+                    <label className={styles.macroInputLabel}>Carbs:</label>
+                    <input
+                      type="number"
+                      className={styles.macroInput}
+                      value={settings.workout_carbs}
+                      onChange={(e) =>
+                        handleUpdateSettings({
+                          ...settings,
+                          workout_carbs: Number(e.target.value),
+                        })
+                      }
+                      min="0"
+                    />
+                    <span className={styles.macroUnit}>g</span>
+                  </div>
+                  <div className={styles.macroInputRow}>
+                    <label className={styles.macroInputLabel}>Fat:</label>
+                    <input
+                      type="number"
+                      className={styles.macroInput}
+                      value={settings.workout_fat}
+                      onChange={(e) =>
+                        handleUpdateSettings({
+                          ...settings,
+                          workout_fat: Number(e.target.value),
+                        })
+                      }
+                      min="0"
+                    />
+                    <span className={styles.macroUnit}>g</span>
+                  </div>
+                </div>
+                <div className={styles.calorieInfo}>
+                  Total Calories:{" "}
+                  {Math.round(
+                    settings.workout_protein * 4 +
+                      settings.workout_carbs * 4 +
+                      settings.workout_fat * 9
+                  )}
                 </div>
               </div>
+            </div>
 
-              {foodEntries.length > 0 && (
-                <div className={styles.todayFoodsSection}>
-                  <h2>Today's Foods</h2>
-                  <div className={styles.todayFoodsList}>
-                    {foodEntries.map((entry) => (
-                      <div key={entry.id} className={styles.todayFoodItem}>
-                        <div className={styles.foodInfo}>
-                          <h3>{entry.food_name}</h3>
-                          <p>{entry.food_portion_size}</p>
-                          <div className={styles.macros}>
-                            <span className={styles.protein}>
-                              P:{" "}
-                              {Math.round(
-                                entry.food_protein * entry.multiplier
-                              )}
-                            </span>
-                            <span className={styles.carbs}>
-                              C:{" "}
-                              {Math.round(entry.food_carbs * entry.multiplier)}
-                            </span>
-                            <span className={styles.fat}>
-                              F: {Math.round(entry.food_fat * entry.multiplier)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className={styles.foodControls}>
-                          <input
-                            type="number"
-                            value={entry.multiplier}
-                            onChange={(e) =>
-                              handleUpdateMultiplier(
-                                entry.id,
-                                parseFloat(e.target.value) || 1
-                              )
-                            }
-                            min="0.1"
-                            max="10"
-                            step="0.1"
-                            className={styles.multiplierInput}
-                          />
-                          <button
-                            className={`${styles.removeButton} button-danger button-small`}
-                            onClick={() => handleRemoveFood(entry.id)}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+            {/* Rest Day Settings */}
+            <div className={styles.settingsCard}>
+              <div className={styles.settingsCardHeader}>
+                <div className={styles.settingsIcon}>🧘</div>
+                <h3 className={styles.settingsCardTitle}>Rest Day Targets</h3>
+              </div>
+              <div className={styles.settingsForm}>
+                <div className={styles.macroInputGroup}>
+                  <div className={styles.macroInputRow}>
+                    <label className={styles.macroInputLabel}>Protein:</label>
+                    <input
+                      type="number"
+                      className={styles.macroInput}
+                      value={settings.rest_protein}
+                      onChange={(e) =>
+                        handleUpdateSettings({
+                          ...settings,
+                          rest_protein: Number(e.target.value),
+                        })
+                      }
+                      min="0"
+                    />
+                    <span className={styles.macroUnit}>g</span>
+                  </div>
+                  <div className={styles.macroInputRow}>
+                    <label className={styles.macroInputLabel}>Carbs:</label>
+                    <input
+                      type="number"
+                      className={styles.macroInput}
+                      value={settings.rest_carbs}
+                      onChange={(e) =>
+                        handleUpdateSettings({
+                          ...settings,
+                          rest_carbs: Number(e.target.value),
+                        })
+                      }
+                      min="0"
+                    />
+                    <span className={styles.macroUnit}>g</span>
+                  </div>
+                  <div className={styles.macroInputRow}>
+                    <label className={styles.macroInputLabel}>Fat:</label>
+                    <input
+                      type="number"
+                      className={styles.macroInput}
+                      value={settings.rest_fat}
+                      onChange={(e) =>
+                        handleUpdateSettings({
+                          ...settings,
+                          rest_fat: Number(e.target.value),
+                        })
+                      }
+                      min="0"
+                    />
+                    <span className={styles.macroUnit}>g</span>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "history" && <History />}
-
-          {activeTab === "settings" && (
-            <div className={styles.settingsTab}>
-              <h2>Settings</h2>
-              {settings && (
-                <div className={styles.settingsGrid}>
-                  <div className={styles.settingsCard}>
-                    <div className={styles.cardHeader}>
-                      <span className={styles.cardIcon}>💪</span>
-                      <h3>Workout Day Targets</h3>
-                    </div>
-                    <div className={styles.settingsInputs}>
-                      <div className={styles.inputGroup}>
-                        <label>Protein (g)</label>
-                        <input
-                          type="number"
-                          value={settings.workout_protein}
-                          onChange={(e) =>
-                            handleUpdateSettings({
-                              workout_protein: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className={styles.inputGroup}>
-                        <label>Carbs (g)</label>
-                        <input
-                          type="number"
-                          value={settings.workout_carbs}
-                          onChange={(e) =>
-                            handleUpdateSettings({
-                              workout_carbs: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className={styles.inputGroup}>
-                        <label>Fat (g)</label>
-                        <input
-                          type="number"
-                          value={settings.workout_fat}
-                          onChange={(e) =>
-                            handleUpdateSettings({
-                              workout_fat: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className={styles.calorieInfo}>
-                        Total:{" "}
-                        {calculateCalories(
-                          settings.workout_protein,
-                          settings.workout_carbs,
-                          settings.workout_fat
-                        )}{" "}
-                        calories
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={styles.settingsCard}>
-                    <div className={styles.cardHeader}>
-                      <span className={styles.cardIcon}>🧘</span>
-                      <h3>Rest Day Targets</h3>
-                    </div>
-                    <div className={styles.settingsInputs}>
-                      <div className={styles.inputGroup}>
-                        <label>Protein (g)</label>
-                        <input
-                          type="number"
-                          value={settings.rest_protein}
-                          onChange={(e) =>
-                            handleUpdateSettings({
-                              rest_protein: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className={styles.inputGroup}>
-                        <label>Carbs (g)</label>
-                        <input
-                          type="number"
-                          value={settings.rest_carbs}
-                          onChange={(e) =>
-                            handleUpdateSettings({
-                              rest_carbs: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className={styles.inputGroup}>
-                        <label>Fat (g)</label>
-                        <input
-                          type="number"
-                          value={settings.rest_fat}
-                          onChange={(e) =>
-                            handleUpdateSettings({
-                              rest_fat: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className={styles.calorieInfo}>
-                        Total:{" "}
-                        {calculateCalories(
-                          settings.rest_protein,
-                          settings.rest_carbs,
-                          settings.rest_fat
-                        )}{" "}
-                        calories
-                      </div>
-                    </div>
-                  </div>
+                <div className={styles.calorieInfo}>
+                  Total Calories:{" "}
+                  {Math.round(
+                    settings.rest_protein * 4 +
+                      settings.rest_carbs * 4 +
+                      settings.rest_fat * 9
+                  )}
                 </div>
-              )}
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {currentTab === "history" && (
+          <div style={{ textAlign: "center", padding: "3rem" }}>
+            <h2>History feature coming soon!</h2>
+            <p>
+              This will show your past daily entries and progress over time.
+            </p>
+          </div>
+        )}
       </main>
 
-      {/* Add Food Form Modal */}
-      {showAddFoodForm && (
-        <AddFoodForm
-          onSubmit={handleCreateFood}
-          onCancel={() => setShowAddFoodForm(false)}
-        />
-      )}
-
-      {/* Edit Food Form Modal */}
-      {editingFood && (
-        <AddFoodForm
-          onSubmit={handleUpdateFood}
-          onCancel={() => setEditingFood(null)}
-          initialData={{
-            name: editingFood.name,
-            portion_size: editingFood.portion_size,
-            protein: editingFood.protein,
-            carbs: editingFood.carbs,
-            fat: editingFood.fat,
-          }}
-          isEditing={true}
-        />
-      )}
+      {/* Edit Food Modal */}
+      <EditFoodModal
+        food={editingFood}
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingFood(null);
+        }}
+        onSave={handleSaveEditedFood}
+      />
     </div>
   );
 };
+
+export default App;
