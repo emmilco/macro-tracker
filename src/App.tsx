@@ -367,6 +367,7 @@ const App: React.FC = () => {
   const [editingFood, setEditingFood] = useState<Food | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddFoodForm, setShowAddFoodForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [newFoodForm, setNewFoodForm] = useState({
     name: "",
     portion_size: "",
@@ -378,6 +379,11 @@ const App: React.FC = () => {
   const today = formatDate(new Date());
   const currentMacros = calculateMacros(foodEntries);
   const targets = getTargets(settings, dailyEntry?.day_type || dayType);
+
+  // Filter foods based on search term
+  const filteredFoods = foods.filter((food) =>
+    food.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Load initial data
   useEffect(() => {
@@ -875,16 +881,65 @@ const App: React.FC = () => {
             {/* Food Database */}
             <div className={styles.foodSection}>
               <h2 className={styles.sectionTitle}>Food Database</h2>
-              <div className={styles.foodGrid}>
-                {foods.map((food) => (
-                  <FoodTile
-                    key={food.id}
-                    food={food}
-                    onAddFood={handleAddFood}
-                    onEditFood={handleEditFood}
-                    onDeleteFood={handleDeleteFood}
+
+              {/* Search Input */}
+              <div className={styles.searchContainer}>
+                <div className={styles.searchInputWrapper}>
+                  <span className={styles.searchIcon}>🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search foods..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={styles.searchInput}
                   />
-                ))}
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className={styles.clearSearch}
+                      aria-label="Clear search"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                {searchTerm && (
+                  <div className={styles.searchResults}>
+                    {filteredFoods.length} food
+                    {filteredFoods.length !== 1 ? "s" : ""} found
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.foodGrid}>
+                {filteredFoods.length > 0 ? (
+                  filteredFoods.map((food) => (
+                    <FoodTile
+                      key={food.id}
+                      food={food}
+                      onAddFood={handleAddFood}
+                      onEditFood={handleEditFood}
+                      onDeleteFood={handleDeleteFood}
+                    />
+                  ))
+                ) : searchTerm ? (
+                  <div className={styles.noResults}>
+                    <p>No foods found matching "{searchTerm}"</p>
+                    <p className={styles.noResultsHint}>
+                      Try a different search term or add a new food above.
+                    </p>
+                  </div>
+                ) : (
+                  foods.map((food) => (
+                    <FoodTile
+                      key={food.id}
+                      food={food}
+                      onAddFood={handleAddFood}
+                      onEditFood={handleEditFood}
+                      onDeleteFood={handleDeleteFood}
+                    />
+                  ))
+                )}
               </div>
             </div>
           </>
