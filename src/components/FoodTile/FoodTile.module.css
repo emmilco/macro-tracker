@@ -1,0 +1,225 @@
+/* src/components/FoodTile/FoodTile.module.css */
+
+.foodTile {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-sm);
+}
+
+.foodTile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+.foodTile:active {
+  transform: translateY(0);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.nameSection {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 var(--space-1) 0;
+  color: var(--text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.portion {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.frequency {
+  background: var(--primary-gradient);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.menuButton {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1.2rem;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  line-height: 1;
+  box-shadow: none;
+}
+
+.menuButton:hover {
+  color: var(--text-primary);
+  background: var(--border-light);
+  transform: none;
+  box-shadow: none;
+}
+
+.macros {
+  display: flex;
+  gap: var(--space-3);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.protein {
+  color: var(--protein-color);
+}
+
+.carbs {
+  color: var(--carbs-color);
+}
+
+.fat {
+  color: var(--fat-color);
+}
+
+.multiplierSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.multiplierLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.multiplierInput {
+  flex: 1;
+  padding: var(--space-2);
+  font-size: 0.875rem;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  max-width: 60px;
+}
+
+.multiplierInput:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.menu {
+  position: absolute;
+  top: var(--space-10);
+  right: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 10;
+  overflow: hidden;
+  min-width: 120px;
+}
+
+.menuItem {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: transparent;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-shadow: none;
+}
+
+.menuItem:hover {
+  background: var(--border-light);
+  transform: none;
+  box-shadow: none;
+}
+
+.menuItem:last-child {
+  color: #dc2626;
+}
+
+.menuItem:last-child:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .foodTile {
+    padding: var(--space-3);
+  }
+  
+  .name {
+    font-size: 0.9rem;
+  }
+  
+  .portion {
+    font-size: 0.8rem;
+  }
+  
+  .macros {
+    font-size: 0.8rem;
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+  
+  .actions {
+    align-self: flex-end;
+  }
+  
+  .macros {
+    flex-wrap: wrap;
+  }
+  
+  .multiplierInput {
+    max-width: 50px;
+  }
+}

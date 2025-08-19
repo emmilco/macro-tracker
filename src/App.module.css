@@ -1,365 +1,375 @@
-/* src/App.module.css - Component-specific styles */
+/* src/App.module.css */
 
 .app {
   min-height: 100vh;
-  background-color: var(--gray-50);
+  background: var(--background);
 }
 
-.header {
-  background: linear-gradient(135deg, var(--primary-500) 0%, #764ba2 100%);
-  color: white;
-  text-align: center;
-  padding: 1.5rem;
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-.dayTypeToggle {
-  display: flex;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 0.75rem;
-  padding: 0.375rem;
-  gap: 0.25rem;
-  max-width: 20rem;
-  margin: 0 auto;
-}
-
-.dayTypeBtn {
+.main {
   flex: 1;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
 }
 
-.dayTypeBtn:hover {
-  color: white;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
 }
 
-.dayTypeBtn.active {
-  background: white;
-  color: var(--primary-500);
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.navigation {
-  display: flex;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.navTab {
-  padding: 1rem 1.5rem;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-weight: 500;
-  color: var(--gray-500);
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.navTab:hover {
-  color: var(--gray-700);
-}
-
-.navTab.active {
-  color: var(--primary-500);
-  border-bottom-color: var(--primary-500);
-}
-
-.content {
-  padding: 1.5rem;
-}
-
-.macroProgress {
-  background: var(--gray-50);
-  border: 1px solid var(--gray-100);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.macroProgressTitle {
-  font-weight: 600;
-  color: var(--gray-700);
-  margin-bottom: 1.25rem;
-  font-size: 1rem;
-}
-
-.macroChart {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-
-.macroItem {
-  text-align: center;
-}
-
-.macroLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--gray-500);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.75rem;
-}
-
-.macroBarContainer {
-  position: relative;
-  height: 8rem;
-  width: 4rem;
-  margin: 0 auto 0.75rem auto;
-  display: flex;
-  align-items: flex-end;
-}
-
-.macroBarBg {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 0.5rem 0.5rem 0.25rem 0.25rem;
-  opacity: 0.2;
-}
-
-.macroBar {
-  width: 100%;
-  border-radius: 0.5rem 0.5rem 0.25rem 0.25rem;
-  position: relative;
-  z-index: 2;
-  transition: height 0.6s ease;
-}
-
-.macroBarProtein,
-.macroBarBg.protein {
-  background-color: var(--macro-protein);
-}
-
-.macroBarCarbs,
-.macroBarBg.carbs {
-  background-color: var(--macro-carbs);
-}
-
-.macroBarFat,
-.macroBarBg.fat {
-  background-color: var(--macro-fat);
-}
-
-.macroValue {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--gray-700);
-}
-
-.macroTarget {
-  font-size: 0.875rem;
-  color: var(--gray-500);
-  margin-top: 0.125rem;
-}
-
-.todaysFoods {
-  background: var(--amber-50);
-  border: 1px solid var(--amber-200);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.todaysFoodsTitle {
-  font-weight: 600;
-  color: var(--gray-600);
-  margin-bottom: 1rem;
-}
-
-.foodEntries {
+/* Loading and Error States */
+.loading,
+.error {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.foodEntry {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: white;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  border: 1px solid var(--gray-100);
-}
-
-.foodEntryInfo {
-  flex: 1;
-}
-
-.foodEntryName {
-  font-weight: 600;
-  color: var(--gray-700);
-  font-size: 0.875rem;
-}
-
-.foodEntryMacros {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-top: 0.25rem;
-}
-
-.macroProtein {
-  color: var(--macro-protein);
-}
-
-.macroCarbs {
-  color: var(--macro-carbs);
-}
-
-.macroFat {
-  color: var(--macro-fat);
-}
-
-.foodEntryControls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.quantityInput {
-  width: 4rem;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--gray-300);
-  border-radius: 0.25rem;
+  justify-content: center;
+  min-height: 100vh;
   text-align: center;
-  font-size: 0.875rem;
-  font-weight: 500;
+  gap: var(--space-4);
 }
 
-.section {
-  margin-bottom: 2rem;
+.loadingSpinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-light);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-.sectionTitle {
-  font-size: 1.125rem;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error h2 {
+  color: #dc2626;
+  margin-bottom: var(--space-2);
+}
+
+.error p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+/* Tab Content */
+.todayTab,
+.historyTab,
+.settingsTab {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Food Section */
+.foodSection {
+  margin-bottom: var(--space-8);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
   font-weight: 600;
-  color: var(--gray-700);
-  margin-bottom: 1rem;
+}
+
+.addButton {
+  background: var(--primary-gradient);
+  border: none;
+  color: white;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.addButton:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .foodGrid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
 }
 
-@media (min-width: 768px) {
-  .foodGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Today's Foods Section */
+.todayFoodsSection {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
 }
 
-@media (min-width: 1024px) {
-  .foodGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.foodTile {
-  position: relative;
-  border: 1px solid var(--gray-200);
-  border-radius: 0.75rem;
-  padding: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: white;
-}
-
-.foodTile:hover {
-  border-color: var(--gray-400);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
-}
-
-.frequencyBadge {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: var(--gray-100);
-  color: var(--gray-600);
-  font-size: 0.75rem;
+.todayFoodsSection h2 {
+  margin: 0 0 var(--space-5) 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.5rem;
 }
 
-.foodName {
-  font-weight: 600;
-  color: var(--gray-700);
-  margin-bottom: 0.375rem;
-  font-size: 0.875rem;
-  padding-right: 3rem;
-}
-
-.foodPortion {
-  font-size: 0.75rem;
-  color: var(--gray-500);
-  margin-bottom: 0.625rem;
-}
-
-.foodMacros {
+.todayFoodsList {
   display: flex;
-  gap: 1rem;
-  font-size: 0.75rem;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.todayFoodItem {
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.foodInfo {
+  flex: 1;
+}
+
+.foodInfo h3 {
+  margin: 0 0 var(--space-1) 0;
+  font-size: 1rem;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
-.addFoodForm {
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
+.foodInfo p {
+  margin: 0 0 var(--space-2) 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
-.addFoodTitle {
-  font-weight: 600;
-  color: var(--gray-700);
-  margin-bottom: 1rem;
+.macros {
+  display: flex;
+  gap: var(--space-3);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-.formGrid {
+.protein {
+  color: var(--protein-color);
+}
+
+.carbs {
+  color: var(--carbs-color);
+}
+
+.fat {
+  color: var(--fat-color);
+}
+
+.foodControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.multiplierInput {
+  width: 70px;
+  text-align: center;
+  padding: var(--space-2);
+  font-size: 0.875rem;
+}
+
+.removeButton {
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.875rem;
+}
+
+/* Settings Tab */
+.settingsGrid {
   display: grid;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--space-6);
 }
 
-.formGrid.cols5 {
-  grid-template-columns: repeat(5, 1fr);
+.settingsCard {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
 }
 
-.formGrid.cols5 .span2 {
-  grid-column: span 2;
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 
-.formGrid.cols5 .start5 {
-  grid-column-start: 5;
+.cardIcon {
+  font-size: 2rem;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-gradient);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
 }
 
-@media (max-width: 767px) {
-  .formGrid.cols5 {
+.cardHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settingsInputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.inputGroup label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.inputGroup input {
+  font-size: 1rem;
+  padding: var(--space-3);
+}
+
+.calorieInfo {
+  background: var(--border-light);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* History Tab */
+.historyTab {
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.comingSoon {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-top: var(--space-4);
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+
+.modalContent {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 500px;
+  width: 100%;
+  box-shadow: var(--shadow-xl);
+}
+
+.modalContent h3 {
+  margin: 0 0 var(--space-4) 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--space-4) var(--space-3);
+  }
+  
+  .foodGrid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-3);
+  }
+  
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  
+  .addButton {
+    align-self: stretch;
+    text-align: center;
+  }
+  
+  .todayFoodItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  
+  .foodControls {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+  
+  .settingsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .foodGrid {
     grid-template-columns: 1fr;
   }
-
-  .formGrid.cols5 .span2,
-  .formGrid.cols5 .start5 {
-    grid-column: unset;
+  
+  .modal {
+    padding: var(--space-2);
+  }
+  
+  .modalContent {
+    padding: var(--space-4);
   }
 }
