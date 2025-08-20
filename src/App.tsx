@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { dbUtils } from "./supabase";
+import { dbUtils, auth } from "./supabase";
 import type {
   Food,
   DailyEntry,
@@ -60,67 +60,52 @@ const formatDate = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
 
-// Default foods to populate the database
-const defaultFoods = [
-  {
-    name: "8oz Ground Beef (93/7)",
-    portion_size: "8 oz serving",
-    protein: 48,
-    carbs: 0,
-    fat: 16,
-  },
-  {
-    name: "1 cup Jasmine Rice",
-    portion_size: "1 cup cooked",
-    protein: 8,
-    carbs: 52,
-    fat: 1,
-  },
-  {
-    name: "1 Large Banana",
-    portion_size: "1 large (126g)",
-    protein: 1,
-    carbs: 27,
-    fat: 0,
-  },
-  {
-    name: "2 Whole Eggs",
-    portion_size: "2 large eggs",
-    protein: 12,
-    carbs: 1,
-    fat: 10,
-  },
-  {
-    name: "1 cup Broccoli",
-    portion_size: "1 cup chopped",
-    protein: 3,
-    carbs: 6,
-    fat: 0,
-  },
-  {
-    name: "1 tbsp Olive Oil",
-    portion_size: "1 tablespoon",
-    protein: 0,
-    carbs: 0,
-    fat: 14,
-  },
-  {
-    name: "Chicken Thigh",
-    portion_size: "180g cooked",
-    protein: 45,
-    carbs: 0,
-    fat: 14,
-  },
-  {
-    name: "Chicken Breast",
-    portion_size: "180g cooked",
-    protein: 58,
-    carbs: 0,
-    fat: 6,
-  },
-  { name: "Shrimp", portion_size: "6oz", protein: 28, carbs: 0, fat: 0 },
-  { name: "Tilapia", portion_size: "4oz", protein: 23, carbs: 0, fat: 2 },
-];
+// Login Component
+const LoginScreen: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+      await auth.signInWithGoogle();
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.loginContainer}>
+      <div className={styles.loginCard}>
+        <h1 className={styles.loginTitle}>Macro Tracker</h1>
+        <p className={styles.loginSubtitle}>
+          Track your nutrition goals with precision
+        </p>
+
+        <button
+          className={styles.loginButton}
+          onClick={handleGoogleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <span>Signing in...</span>
+          ) : (
+            <>
+              <span className={styles.googleIcon}>🔐</span>
+              Sign in with Google
+            </>
+          )}
+        </button>
+
+        <p className={styles.loginFooter}>
+          Secure authentication • Your data stays private
+        </p>
+      </div>
+    </div>
+  );
+};
 
 // Components
 interface MacroBarProps {
@@ -357,7 +342,11 @@ const EditFoodModal: React.FC<EditFoodModalProps> = ({
 
 // Main App Component
 const App: React.FC = () => {
-  // State
+  // Auth state
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // App state
   const [currentTab, setCurrentTab] = useState<
     "today" | "history" | "meal-builder" | "settings"
   >("today");
@@ -413,60 +402,116 @@ const App: React.FC = () => {
     { protein: 0, carbs: 0, fat: 0 }
   );
 
-  // Load initial data
+  // Initialize auth
   useEffect(() => {
-    const loadData = async () => {
+    const initAuth = async () => {
       try {
-        setLoading(true);
-
-        // Load foods
-        const foodsData = await dbUtils.getFoods();
-        if (foodsData.length === 0) {
-          // Populate with default foods if empty
-          for (const food of defaultFoods) {
-            await dbUtils.createFood(food);
-          }
-          const newFoodsData = await dbUtils.getFoods();
-          setFoods(newFoodsData);
-        } else {
-          setFoods(foodsData);
-        }
-
-        // Load settings
-        const settingsData = await dbUtils.getSettings();
-        if (!settingsData) {
-          // Create default settings
-          const defaultSettings = {
-            workout_protein: 180,
-            workout_carbs: 250,
-            workout_fat: 80,
-            rest_protein: 180,
-            rest_carbs: 150,
-            rest_fat: 100,
-          };
-          await dbUtils.updateSettings(defaultSettings);
-          setSettings({ id: "1", ...defaultSettings });
-        } else {
-          setSettings(settingsData);
-        }
-
-        // Load today's entry
-        const todayEntry = await dbUtils.getDailyEntry(today);
-        if (todayEntry) {
-          setDailyEntry(todayEntry);
-          setDayType(todayEntry.day_type);
-          const entries = await dbUtils.getFoodEntries(todayEntry.id);
-          setFoodEntries(entries);
-        }
+        const currentUser = await auth.getCurrentUser();
+        setUser(currentUser);
       } catch (error) {
-        console.error("Error loading data:", error);
+        console.error("Auth initialization error:", error);
       } finally {
-        setLoading(false);
+        setAuthLoading(false);
       }
     };
 
-    loadData();
-  }, [today]);
+    initAuth();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user || null);
+      if (session?.user) {
+        // User logged in, load their data
+        await loadUserData();
+      } else {
+        // User logged out, clear data
+        clearUserData();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Clear user data on logout
+  const clearUserData = () => {
+    setFoods([]);
+    setDailyEntry(null);
+    setFoodEntries([]);
+    setSettings(null);
+    setCurrentTab("today");
+  };
+
+  // Load user data
+  const loadUserData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      // Check if user has settings (indicates setup is complete)
+      const settingsData = await dbUtils.getSettings();
+
+      if (!settingsData) {
+        // New user - set up default data
+        await dbUtils.setupNewUser();
+      }
+
+      // Load all user data
+      const [foodsData, settingsResult] = await Promise.all([
+        dbUtils.getFoods(),
+        dbUtils.getSettings(),
+      ]);
+
+      setFoods(foodsData);
+      setSettings(settingsResult);
+
+      // Load today's entry
+      const todayEntry = await dbUtils.getDailyEntry(today);
+      if (todayEntry) {
+        setDailyEntry(todayEntry);
+        setDayType(todayEntry.day_type);
+        const entries = await dbUtils.getFoodEntries(todayEntry.id);
+        setFoodEntries(entries);
+      }
+    } catch (error) {
+      console.error("Error loading user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data when user changes
+  useEffect(() => {
+    if (user) {
+      loadUserData();
+    }
+  }, [user, today]);
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  // Show loading screen during auth initialization
+  if (authLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Show login screen if not authenticated
+  if (!user) {
+    return <LoginScreen />;
+  }
 
   // Handle day type change
   const handleDayTypeChange = async (newDayType: "workout" | "rest") => {
@@ -722,6 +767,25 @@ const App: React.FC = () => {
               <span>+</span>
               Add Food
             </button>
+            <div className={styles.userInfo}>
+              <img
+                src={
+                  user.user_metadata?.avatar_url ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    user.user_metadata?.full_name || "User"
+                  )}&background=475569&color=fff`
+                }
+                alt="User avatar"
+                className={styles.userAvatar}
+              />
+              <button
+                className={styles.logoutButton}
+                onClick={handleLogout}
+                title="Sign out"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </header>

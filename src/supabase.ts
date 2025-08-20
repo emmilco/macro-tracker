@@ -7,6 +7,42 @@ const supabaseAnonKey =
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Authentication utilities
+export const auth = {
+  // Sign in with Google
+  async signInWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  // Sign out
+  async signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+
+  // Get current user
+  async getCurrentUser() {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user;
+  },
+
+  // Listen to auth changes
+  onAuthStateChange(callback: (event: string, session: any) => void) {
+    return supabase.auth.onAuthStateChange(callback);
+  },
+};
+
 // Utility functions for database operations
 export const dbUtils = {
   // Foods
@@ -20,9 +56,14 @@ export const dbUtils = {
   },
 
   async createFood(food: Omit<Food, "id" | "frequency">) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
     const { data, error } = await supabase
       .from("foods")
-      .insert({ ...food, frequency: 0 })
+      .insert({ ...food, frequency: 0, user_id: user.id })
       .select()
       .single();
     if (error) throw error;
@@ -64,9 +105,14 @@ export const dbUtils = {
   },
 
   async createDailyEntry(date: string, dayType: "workout" | "rest") {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
     const { data, error } = await supabase
       .from("daily_entries")
-      .insert({ date, day_type: dayType })
+      .insert({ date, day_type: dayType, user_id: user.id })
       .select()
       .single();
     if (error) throw error;
@@ -131,13 +177,31 @@ export const dbUtils = {
   },
 
   async updateSettings(settings: Omit<UserSettings, "id">) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
     const { data, error } = await supabase
       .from("user_settings")
-      .upsert(settings)
+      .upsert({ ...settings, user_id: user.id })
       .select()
       .single();
     if (error) throw error;
     return data;
+  },
+
+  // Setup new user
+  async setupNewUser() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const { error } = await supabase.rpc("setup_new_user", {
+      target_user_id: user.id,
+    });
+    if (error) throw error;
   },
 };
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Deploying Macro Tracker with Meal Builder..."
+echo "🚀 Deploying Macro Tracker with Authentication..."
 
 echo
 echo "🧹 Cleaning previous build..."
@@ -15,36 +15,40 @@ if [ $? -eq 0 ]; then
     echo
     echo "📦 Build output is ready in ./dist/"
     echo
-    echo "🍽️ NEW: Meal Builder Feature Complete!"
-    echo "   🔍 Search bar moved back to Food Database section"
-    echo "   ➕ New 'Meal Builder' tab in navigation"
-    echo "   🥘 Build complex meals from multiple foods"
-    echo "   🧮 Automatic macro calculation per portion"
-    echo "   💾 Save meals as new foods in database"
-    echo "   📱 Fully mobile optimized"
+    echo "🔐 NEW: Multi-User Authentication!"
+    echo "   🔑 Google OAuth integration with Supabase"
+    echo "   👤 Individual user accounts and data isolation"
+    echo "   🛡️  Row Level Security for complete privacy"
+    echo "   ⚡ Automatic user setup with default foods"
+    echo "   🎯 Personal macro targets and food databases"
     echo
-    echo "✨ Meal Builder workflow:"
-    echo "   1. Enter meal name + number of portions"
-    echo "   2. Add foods from database with quantities"
-    echo "   3. See real-time macro totals per portion"
-    echo "   4. Save as new food (1 portion = calculated macros)"
-    echo "   5. Use your custom meal like any other food"
+    echo "🔥 Features included:"
+    echo "   📊 Total calories display with macro bars"
+    echo "   🍽️  Meal Builder for custom recipes"
+    echo "   🔍 Smart search functionality"
+    echo "   📱 Mobile-optimized design"
+    echo "   🔐 Secure Google Sign-In"
+    echo
+    echo "🛠️  IMPORTANT: Setup Required Before Deployment"
+    echo "   1. Configure Google OAuth in Supabase Dashboard"
+    echo "   2. Run database/add_auth_schema.sql in Supabase"
+    echo "   3. Update Supabase credentials in src/supabase.ts"
+    echo "   4. See SETUP_AUTHENTICATION.md for details"
     echo
     echo "🌐 To deploy to Netlify:"
-    echo "   1. Drag and drop the ./dist folder to Netlify"
-    echo "   2. Or use Netlify CLI: netlify deploy --prod --dir=dist"
+    echo "   1. Complete authentication setup first"
+    echo "   2. Drag and drop the ./dist folder to Netlify"
+    echo "   3. Or use Netlify CLI: netlify deploy --prod --dir=dist"
+    echo "   4. Update redirect URLs in Google Cloud Console"
     echo
-    echo "💡 Example use cases:"
-    echo "   • Create 'Protein Smoothie' from multiple ingredients"
-    echo "   • Build 'Chicken Rice Bowl' with exact portions"
-    echo "   • Make 'Pre-workout Snack' with perfect macros"
+    echo "💡 What users will experience:"
+    echo "   • Secure Google sign-in on first visit"
+    echo "   • Personal food database with 10 default items"
+    echo "   • Private macro tracking and meal building"
+    echo "   • Individual settings and preferences"
+    echo "   • Complete data privacy and isolation"
     echo
-    echo "🎯 Perfect for:"
-    echo "   • Meal prep recipes"
-    echo "   • Complex dishes with multiple ingredients"
-    echo "   • Consistent macro tracking of custom meals"
-    echo
-    echo "🎉 Your macro tracker now builds custom meals!"
+    echo "🎉 Your macro tracker is now a full multi-user app!"
 else
     echo "❌ Build failed. Check the errors above."
     exit 1
