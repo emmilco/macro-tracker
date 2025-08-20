@@ -238,6 +238,33 @@ body {
   line-height: 1.2;
 }
 
+/* Calories Display */
+.caloriesDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+.caloriesValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--primary-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+.caloriesLabel {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  text-align: center;
+}
+
 /* Food Grid */
 .foodSection {
   margin-bottom: 3rem;
@@ -1123,6 +1150,14 @@ body {
 
   .macroValues {
     font-size: 0.65rem;
+  }
+
+  .caloriesValue {
+    font-size: 1.25rem;
+  }
+
+  .caloriesLabel {
+    font-size: 0.75rem;
   }
 
   .searchContainer {

@@ -788,6 +788,12 @@ const App: React.FC = () => {
                 target={targets.fat}
                 color="fat"
               />
+              <div className={styles.caloriesDisplay}>
+                <div className={styles.caloriesValue}>
+                  {currentMacros.calories}
+                </div>
+                <div className={styles.caloriesLabel}>Total Calories</div>
+              </div>
             </div>
 
             {/* Today's Foods */}
