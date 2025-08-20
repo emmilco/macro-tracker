@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Food, DailyEntry, FoodEntry, UserSettings } from "./types";
 
 const supabaseUrl = "https://dcnsjzyuxjkxtrwypucz.supabase.co";
 const supabaseAnonKey =
@@ -180,9 +181,10 @@ export const dbUtils = {
     const { data, error } = await supabase
       .from("user_settings")
       .select("*")
-      .single();
-    if (error && error.code !== "PGRST116") throw error;
-    return data;
+      .maybeSingle(); // Changed from .single() to .maybeSingle()
+
+    if (error) throw error;
+    return data; // Will be null if no settings exist, or the settings object if found
   },
 
   async updateSettings(settings: Omit<UserSettings, "id">) {
@@ -193,7 +195,13 @@ export const dbUtils = {
 
     const { data, error } = await supabase
       .from("user_settings")
-      .upsert({ ...settings, user_id: user.id })
+      .upsert(
+        { ...settings, user_id: user.id },
+        {
+          onConflict: "user_id", // This is the key fix!
+          ignoreDuplicates: false, // Ensure we update existing rows
+        }
+      )
       .select()
       .single();
     if (error) throw error;
@@ -207,11 +215,16 @@ export const dbUtils = {
     } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
+    // Check if user already has settings
+    const existingSettings = await this.getSettings();
+    if (existingSettings) {
+      console.log("User already has settings, skipping setup");
+      return;
+    }
+
     const { error } = await supabase.rpc("setup_new_user", {
       target_user_id: user.id,
     });
     if (error) throw error;
   },
 };
-
-import type { Food, DailyEntry, FoodEntry, UserSettings } from "./types";

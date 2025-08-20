@@ -396,6 +396,30 @@ const App: React.FC = () => {
     fat: 0,
   });
 
+  const [settingsForm, setSettingsForm] = useState({
+    workout_protein: 180,
+    workout_carbs: 250,
+    workout_fat: 80,
+    rest_protein: 180,
+    rest_carbs: 150,
+    rest_fat: 100,
+  });
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaved, setSettingsSaved] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      setSettingsForm({
+        workout_protein: settings.workout_protein,
+        workout_carbs: settings.workout_carbs,
+        workout_fat: settings.workout_fat,
+        rest_protein: settings.rest_protein,
+        rest_carbs: settings.rest_carbs,
+        rest_fat: settings.rest_fat,
+      });
+    }
+  }, [settings]);
+
   // Meal Builder state
   const [mealForm, setMealForm] = useState({
     name: "",
@@ -724,15 +748,38 @@ const App: React.FC = () => {
     }
   };
 
+  const hasUnsavedChanges = () => {
+    if (!settings) return false;
+
+    return (
+      settingsForm.workout_protein !== settings.workout_protein ||
+      settingsForm.workout_carbs !== settings.workout_carbs ||
+      settingsForm.workout_fat !== settings.workout_fat ||
+      settingsForm.rest_protein !== settings.rest_protein ||
+      settingsForm.rest_carbs !== settings.rest_carbs ||
+      settingsForm.rest_fat !== settings.rest_fat
+    );
+  };
+
   // Update settings
-  const handleUpdateSettings = async (
-    newSettings: Omit<UserSettings, "id">
-  ) => {
+  const handleSettingsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     try {
-      const updated = await dbUtils.updateSettings(newSettings);
+      setSettingsLoading(true);
+      setSettingsSaved(false);
+
+      const updated = await dbUtils.updateSettings(settingsForm);
       setSettings(updated);
+
+      // Show success feedback
+      setSettingsSaved(true);
+      setTimeout(() => setSettingsSaved(false), 3000); // Hide after 3 seconds
     } catch (error) {
       console.error("Error updating settings:", error);
+      alert("Failed to save settings. Please try again.");
+    } finally {
+      setSettingsLoading(false);
     }
   };
 
@@ -1316,145 +1363,200 @@ const App: React.FC = () => {
         )}
 
         {currentTab === "settings" && settings && (
-          <div className={styles.settingsGrid}>
-            {/* Workout Day Settings */}
-            <div className={styles.settingsCard}>
-              <div className={styles.settingsCardHeader}>
-                <div className={styles.settingsIcon}>💪</div>
-                <h3 className={styles.settingsCardTitle}>
-                  Workout Day Targets
-                </h3>
-              </div>
-              <div className={styles.settingsForm}>
-                <div className={styles.macroInputGroup}>
-                  <div className={styles.macroInputRow}>
-                    <label className={styles.macroInputLabel}>Protein:</label>
-                    <input
-                      type="number"
-                      className={styles.macroInput}
-                      value={settings.workout_protein}
-                      onChange={(e) =>
-                        handleUpdateSettings({
-                          ...settings,
-                          workout_protein: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                    />
-                    <span className={styles.macroUnit}>g</span>
+          <form onSubmit={handleSettingsSubmit}>
+            <div className={styles.settingsGrid}>
+              {/* Workout Day Settings */}
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsCardHeader}>
+                  <div className={styles.settingsIcon}>💪</div>
+                  <h3 className={styles.settingsCardTitle}>
+                    Workout Day Targets
+                  </h3>
+                </div>
+                <div className={styles.settingsForm}>
+                  <div className={styles.macroInputGroup}>
+                    <div className={styles.macroInputRow}>
+                      <label className={styles.macroInputLabel}>Protein:</label>
+                      <input
+                        type="number"
+                        className={styles.macroInput}
+                        value={settingsForm.workout_protein}
+                        onChange={(e) =>
+                          setSettingsForm({
+                            ...settingsForm,
+                            workout_protein: Number(e.target.value),
+                          })
+                        }
+                        min="0"
+                        required
+                      />
+                      <span className={styles.macroUnit}>g</span>
+                    </div>
+                    <div className={styles.macroInputRow}>
+                      <label className={styles.macroInputLabel}>Carbs:</label>
+                      <input
+                        type="number"
+                        className={styles.macroInput}
+                        value={settingsForm.workout_carbs}
+                        onChange={(e) =>
+                          setSettingsForm({
+                            ...settingsForm,
+                            workout_carbs: Number(e.target.value),
+                          })
+                        }
+                        min="0"
+                        required
+                      />
+                      <span className={styles.macroUnit}>g</span>
+                    </div>
+                    <div className={styles.macroInputRow}>
+                      <label className={styles.macroInputLabel}>Fat:</label>
+                      <input
+                        type="number"
+                        className={styles.macroInput}
+                        value={settingsForm.workout_fat}
+                        onChange={(e) =>
+                          setSettingsForm({
+                            ...settingsForm,
+                            workout_fat: Number(e.target.value),
+                          })
+                        }
+                        min="0"
+                        required
+                      />
+                      <span className={styles.macroUnit}>g</span>
+                    </div>
                   </div>
-                  <div className={styles.macroInputRow}>
-                    <label className={styles.macroInputLabel}>Carbs:</label>
-                    <input
-                      type="number"
-                      className={styles.macroInput}
-                      value={settings.workout_carbs}
-                      onChange={(e) =>
-                        handleUpdateSettings({
-                          ...settings,
-                          workout_carbs: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                    />
-                    <span className={styles.macroUnit}>g</span>
-                  </div>
-                  <div className={styles.macroInputRow}>
-                    <label className={styles.macroInputLabel}>Fat:</label>
-                    <input
-                      type="number"
-                      className={styles.macroInput}
-                      value={settings.workout_fat}
-                      onChange={(e) =>
-                        handleUpdateSettings({
-                          ...settings,
-                          workout_fat: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                    />
-                    <span className={styles.macroUnit}>g</span>
+                  <div className={styles.calorieInfo}>
+                    Total Calories:{" "}
+                    {Math.round(
+                      settingsForm.workout_protein * 4 +
+                        settingsForm.workout_carbs * 4 +
+                        settingsForm.workout_fat * 9
+                    )}
                   </div>
                 </div>
-                <div className={styles.calorieInfo}>
-                  Total Calories:{" "}
-                  {Math.round(
-                    settings.workout_protein * 4 +
-                      settings.workout_carbs * 4 +
-                      settings.workout_fat * 9
-                  )}
+              </div>
+
+              {/* Rest Day Settings */}
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsCardHeader}>
+                  <div className={styles.settingsIcon}>🧘</div>
+                  <h3 className={styles.settingsCardTitle}>Rest Day Targets</h3>
+                </div>
+                <div className={styles.settingsForm}>
+                  <div className={styles.macroInputGroup}>
+                    <div className={styles.macroInputRow}>
+                      <label className={styles.macroInputLabel}>Protein:</label>
+                      <input
+                        type="number"
+                        className={styles.macroInput}
+                        value={settingsForm.rest_protein}
+                        onChange={(e) =>
+                          setSettingsForm({
+                            ...settingsForm,
+                            rest_protein: Number(e.target.value),
+                          })
+                        }
+                        min="0"
+                        required
+                      />
+                      <span className={styles.macroUnit}>g</span>
+                    </div>
+                    <div className={styles.macroInputRow}>
+                      <label className={styles.macroInputLabel}>Carbs:</label>
+                      <input
+                        type="number"
+                        className={styles.macroInput}
+                        value={settingsForm.rest_carbs}
+                        onChange={(e) =>
+                          setSettingsForm({
+                            ...settingsForm,
+                            rest_carbs: Number(e.target.value),
+                          })
+                        }
+                        min="0"
+                        required
+                      />
+                      <span className={styles.macroUnit}>g</span>
+                    </div>
+                    <div className={styles.macroInputRow}>
+                      <label className={styles.macroInputLabel}>Fat:</label>
+                      <input
+                        type="number"
+                        className={styles.macroInput}
+                        value={settingsForm.rest_fat}
+                        onChange={(e) =>
+                          setSettingsForm({
+                            ...settingsForm,
+                            rest_fat: Number(e.target.value),
+                          })
+                        }
+                        min="0"
+                        required
+                      />
+                      <span className={styles.macroUnit}>g</span>
+                    </div>
+                  </div>
+                  <div className={styles.calorieInfo}>
+                    Total Calories:{" "}
+                    {Math.round(
+                      settingsForm.rest_protein * 4 +
+                        settingsForm.rest_carbs * 4 +
+                        settingsForm.rest_fat * 9
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Rest Day Settings */}
-            <div className={styles.settingsCard}>
-              <div className={styles.settingsCardHeader}>
-                <div className={styles.settingsIcon}>🧘</div>
-                <h3 className={styles.settingsCardTitle}>Rest Day Targets</h3>
-              </div>
-              <div className={styles.settingsForm}>
-                <div className={styles.macroInputGroup}>
-                  <div className={styles.macroInputRow}>
-                    <label className={styles.macroInputLabel}>Protein:</label>
-                    <input
-                      type="number"
-                      className={styles.macroInput}
-                      value={settings.rest_protein}
-                      onChange={(e) =>
-                        handleUpdateSettings({
-                          ...settings,
-                          rest_protein: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                    />
-                    <span className={styles.macroUnit}>g</span>
-                  </div>
-                  <div className={styles.macroInputRow}>
-                    <label className={styles.macroInputLabel}>Carbs:</label>
-                    <input
-                      type="number"
-                      className={styles.macroInput}
-                      value={settings.rest_carbs}
-                      onChange={(e) =>
-                        handleUpdateSettings({
-                          ...settings,
-                          rest_carbs: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                    />
-                    <span className={styles.macroUnit}>g</span>
-                  </div>
-                  <div className={styles.macroInputRow}>
-                    <label className={styles.macroInputLabel}>Fat:</label>
-                    <input
-                      type="number"
-                      className={styles.macroInput}
-                      value={settings.rest_fat}
-                      onChange={(e) =>
-                        handleUpdateSettings({
-                          ...settings,
-                          rest_fat: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                    />
-                    <span className={styles.macroUnit}>g</span>
-                  </div>
-                </div>
-                <div className={styles.calorieInfo}>
-                  Total Calories:{" "}
-                  {Math.round(
-                    settings.rest_protein * 4 +
-                      settings.rest_carbs * 4 +
-                      settings.rest_fat * 9
-                  )}
-                </div>
-              </div>
+            {/* Submit Button Section */}
+            <div className={styles.settingsSubmitSection}>
+              <button
+                type="submit"
+                className={`${styles.settingsSubmitButton} ${
+                  hasUnsavedChanges() ? styles.hasChanges : ""
+                }`}
+                disabled={settingsLoading || !hasUnsavedChanges()}
+              >
+                {settingsLoading ? (
+                  <span className={styles.submitButtonLoading}>
+                    <span className={styles.spinner}></span>
+                    Saving...
+                  </span>
+                ) : settingsSaved ? (
+                  <span className={styles.submitButtonSuccess}>
+                    ✓ Settings Saved!
+                  </span>
+                ) : hasUnsavedChanges() ? (
+                  "Save Changes"
+                ) : (
+                  "No Changes"
+                )}
+              </button>
+
+              {hasUnsavedChanges() && (
+                <button
+                  type="button"
+                  className={styles.settingsResetButton}
+                  onClick={() => {
+                    if (settings) {
+                      setSettingsForm({
+                        workout_protein: settings.workout_protein,
+                        workout_carbs: settings.workout_carbs,
+                        workout_fat: settings.workout_fat,
+                        rest_protein: settings.rest_protein,
+                        rest_carbs: settings.rest_carbs,
+                        rest_fat: settings.rest_fat,
+                      });
+                    }
+                  }}
+                >
+                  Reset Changes
+                </button>
+              )}
             </div>
-          </div>
+          </form>
         )}
 
         {currentTab === "history" && (

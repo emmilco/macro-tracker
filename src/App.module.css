@@ -1648,3 +1648,117 @@ body {
     justify-content: space-between;
   }
 }
+
+/* Settings Submit Section */
+.settingsSubmitSection {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.settingsSubmitButton {
+  padding: 0.75rem 2rem;
+  background: var(--border);
+  color: var(--text-secondary);
+  border: 2px solid var(--border);
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: not-allowed;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.settingsSubmitButton.hasChanges {
+  background: var(--primary-gradient);
+  color: white;
+  cursor: pointer;
+  border-color: transparent;
+}
+
+.settingsSubmitButton.hasChanges:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
+}
+
+.settingsSubmitButton:disabled {
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.submitButtonLoading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.submitButtonSuccess {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.settingsResetButton {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 2px solid var(--border);
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.settingsResetButton:hover {
+  background: var(--background);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 767px) {
+  .settingsSubmitSection {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .settingsSubmitButton {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .settingsResetButton {
+    width: 100%;
+  }
+}
