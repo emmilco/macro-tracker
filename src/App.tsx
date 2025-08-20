@@ -33,6 +33,10 @@ const calculateMacros = (foodEntries: FoodEntry[]): MacroTotals => {
   };
 };
 
+const calculateTargetCalories = (targets: MacroTargets): number => {
+  return Math.round(targets.protein * 4 + targets.carbs * 4 + targets.fat * 9);
+};
+
 const getTargets = (
   settings: UserSettings | null,
   dayType: "workout" | "rest"
@@ -967,8 +971,19 @@ const App: React.FC = () => {
                 color="fat"
               />
               <div className={styles.caloriesDisplay}>
-                <div className={styles.caloriesValue}>
-                  {currentMacros.calories}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: "0.25rem",
+                  }}
+                >
+                  <div className={styles.caloriesValue}>
+                    {currentMacros.calories}
+                  </div>
+                  <div className={styles.caloriesTarget}>
+                    / {calculateTargetCalories(targets)}
+                  </div>
                 </div>
                 <div className={styles.caloriesLabel}>Total Calories</div>
               </div>
@@ -982,12 +997,20 @@ const App: React.FC = () => {
                   <div key={entry.id} className={styles.todayFood}>
                     <div className={styles.todayFoodInfo}>
                       <div className={styles.todayFoodName}>
-                        {entry.food_name} × {entry.multiplier}
+                        {`${entry.food_name} (${entry.food_portion_size})`}
+                        {entry.multiplier !== 1 && ` × ${entry.multiplier}`}
                       </div>
                       <div className={styles.todayFoodMacros}>
                         P: {Math.round(entry.food_protein * entry.multiplier)}g,
                         C: {Math.round(entry.food_carbs * entry.multiplier)}g,
-                        F: {Math.round(entry.food_fat * entry.multiplier)}g
+                        F: {Math.round(entry.food_fat * entry.multiplier)}g •{" "}
+                        {Math.round(
+                          (entry.food_protein * 4 +
+                            entry.food_carbs * 4 +
+                            entry.food_fat * 9) *
+                            entry.multiplier
+                        )}{" "}
+                        cal
                       </div>
                     </div>
                     <div className={styles.todayFoodControls}>

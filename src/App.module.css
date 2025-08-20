@@ -1762,3 +1762,135 @@ body {
     width: 100%;
   }
 }
+
+/* Enhanced Calories Display Styles */
+/* Add these styles to your App.module.css file */
+
+.caloriesDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  justify-content: center;
+  position: relative;
+}
+
+.caloriesValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--primary-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  display: inline;
+}
+
+.caloriesTarget {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  line-height: 1;
+  display: inline;
+  margin-left: 0.25rem;
+}
+
+.caloriesLabel {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  text-align: center;
+  margin-top: 0.125rem;
+}
+
+/* Enhanced Today's Foods Styles */
+.todayFoodInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.todayFoodName {
+  font-weight: 600;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.todayFoodPortion {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.2;
+  font-style: italic;
+  margin-bottom: 0.1rem;
+}
+
+.todayFoodMacros {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 767px) {
+  .caloriesValue {
+    font-size: 1.25rem;
+  }
+
+  .caloriesTarget {
+    font-size: 0.9rem;
+  }
+
+  .caloriesLabel {
+    font-size: 0.75rem;
+  }
+
+  .todayFoodPortion {
+    font-size: 0.75rem;
+  }
+
+  .todayFoodMacros {
+    font-size: 0.75rem;
+  }
+
+  .todayFoodName {
+    font-size: 0.85rem;
+  }
+}
+
+/* Progress indicator styles for when calories are close to target */
+.caloriesDisplay.nearTarget {
+  background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%);
+  border-radius: 8px;
+  padding: 0.5rem;
+  border: 1px solid #86efac;
+}
+
+.caloriesDisplay.overTarget {
+  background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+  border-radius: 8px;
+  padding: 0.5rem;
+  border: 1px solid #fca5a5;
+}
+
+/* Calories Progress Bar */
+.caloriesProgress {
+  width: 60px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.caloriesProgressBar {
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
