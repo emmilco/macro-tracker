@@ -57,7 +57,21 @@ const getTargets = (
 };
 
 const formatDate = (date: Date): string => {
-  return date.toISOString().split("T")[0];
+  // Use local timezone instead of UTC
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const formatDateForDisplay = (dateString: string): string => {
+  const date = new Date(dateString + "T00:00:00"); // Avoid timezone shifts
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 };
 
 // Login Component
@@ -345,11 +359,25 @@ const App: React.FC = () => {
   // Auth state
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [historyEntries, setHistoryEntries] = useState<
+    (DailyEntry & {
+      foodEntries: FoodEntry[];
+      macros: MacroTotals;
+    })[]
+  >([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   // App state
   const [currentTab, setCurrentTab] = useState<
     "today" | "history" | "meal-builder" | "settings"
   >("today");
+
+  useEffect(() => {
+    if (currentTab === "history" && user) {
+      loadHistoryData();
+    }
+  }, [currentTab, user]);
+
   const [dayType, setDayType] = useState<"workout" | "rest">("workout");
   const [foods, setFoods] = useState<Food[]>([]);
   const [dailyEntry, setDailyEntry] = useState<DailyEntry | null>(null);
@@ -378,7 +406,16 @@ const App: React.FC = () => {
   );
   const [mealSearchTerm, setMealSearchTerm] = useState("");
 
-  const today = formatDate(new Date());
+  const getTodayLocal = (): string => {
+    return formatDate(new Date());
+  };
+
+  const today = getTodayLocal();
+
+  const isToday = (dateString: string): boolean => {
+    return dateString === today;
+  };
+
   const currentMacros = calculateMacros(foodEntries);
   const targets = getTargets(settings, dailyEntry?.day_type || dayType);
 
@@ -479,6 +516,36 @@ const App: React.FC = () => {
       console.error("Error loading user data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadHistoryData = async () => {
+    if (!user) return;
+
+    try {
+      setHistoryLoading(true);
+
+      // Get all daily entries except today, ordered by date descending
+      const entries = await dbUtils.getHistoricalDailyEntries(today);
+
+      // Load food entries and calculate macros for each day
+      const entriesWithData = await Promise.all(
+        entries.map(async (entry) => {
+          const foodEntries = await dbUtils.getFoodEntries(entry.id);
+          const macros = calculateMacros(foodEntries);
+          return {
+            ...entry,
+            foodEntries,
+            macros,
+          };
+        })
+      );
+
+      setHistoryEntries(entriesWithData);
+    } catch (error) {
+      console.error("Error loading history data:", error);
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -1391,11 +1458,173 @@ const App: React.FC = () => {
         )}
 
         {currentTab === "history" && (
-          <div style={{ textAlign: "center", padding: "3rem" }}>
-            <h2>History feature coming soon!</h2>
-            <p>
-              This will show your past daily entries and progress over time.
-            </p>
+          <div className={styles.historyContainer}>
+            <h2 className={styles.sectionTitle}>Nutrition History</h2>
+
+            {historyLoading ? (
+              <div style={{ textAlign: "center", padding: "2rem" }}>
+                <div className={styles.loadingSpinner}></div>
+                <p>Loading history...</p>
+              </div>
+            ) : historyEntries.length === 0 ? (
+              <div className={styles.noHistory}>
+                <p>No history available yet.</p>
+                <p className={styles.noHistoryHint}>
+                  Start tracking your daily nutrition to see your progress over
+                  time!
+                </p>
+              </div>
+            ) : (
+              <div className={styles.historyList}>
+                {historyEntries.map((entry) => {
+                  const targets = getTargets(settings, entry.day_type);
+                  const entryDate = new Date(entry.date + "T00:00:00"); // Avoid timezone shifts
+                  const daysDiff = Math.floor(
+                    (new Date().getTime() - entryDate.getTime()) /
+                      (24 * 60 * 60 * 1000)
+                  );
+                  const isRecent = daysDiff <= 7; // Within 7 days
+
+                  return (
+                    <div
+                      key={entry.id}
+                      className={`${styles.historyEntry} ${
+                        isRecent ? styles.recentEntry : ""
+                      }`}
+                    >
+                      <div className={styles.historyHeader}>
+                        <div className={styles.historyDate}>
+                          <h3>{formatDateForDisplay(entry.date)}</h3>
+                          <span className={styles.dayTypeBadge}>
+                            {entry.day_type === "workout"
+                              ? "💪 Workout"
+                              : "🧘 Rest"}{" "}
+                            Day
+                          </span>
+                        </div>
+                        <div className={styles.historyMacros}>
+                          <div className={styles.caloriesDisplay}>
+                            <div className={styles.caloriesValue}>
+                              {entry.macros.calories}
+                            </div>
+                            <div className={styles.caloriesLabel}>Calories</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Macro Progress Bars for History */}
+                      <div className={styles.historyMacroProgress}>
+                        <MacroBar
+                          label="Protein"
+                          current={entry.macros.protein}
+                          target={targets.protein}
+                          color="protein"
+                        />
+                        <MacroBar
+                          label="Carbs"
+                          current={entry.macros.carbs}
+                          target={targets.carbs}
+                          color="carbs"
+                        />
+                        <MacroBar
+                          label="Fat"
+                          current={entry.macros.fat}
+                          target={targets.fat}
+                          color="fat"
+                        />
+                      </div>
+
+                      {/* Food Items */}
+                      {entry.foodEntries.length > 0 && (
+                        <div className={styles.historyFoods}>
+                          <h4 className={styles.historyFoodsTitle}>
+                            Foods ({entry.foodEntries.length} item
+                            {entry.foodEntries.length !== 1 ? "s" : ""})
+                          </h4>
+                          <div className={styles.historyFoodsList}>
+                            {entry.foodEntries.map((foodEntry) => (
+                              <div
+                                key={foodEntry.id}
+                                className={styles.historyFoodItem}
+                              >
+                                <div className={styles.historyFoodInfo}>
+                                  <span className={styles.historyFoodName}>
+                                    {foodEntry.food_name}
+                                    {foodEntry.multiplier !== 1 &&
+                                      ` × ${foodEntry.multiplier}`}
+                                  </span>
+                                  <span className={styles.historyFoodMacros}>
+                                    P:{" "}
+                                    {Math.round(
+                                      foodEntry.food_protein *
+                                        foodEntry.multiplier
+                                    )}
+                                    g, C:{" "}
+                                    {Math.round(
+                                      foodEntry.food_carbs *
+                                        foodEntry.multiplier
+                                    )}
+                                    g, F:{" "}
+                                    {Math.round(
+                                      foodEntry.food_fat * foodEntry.multiplier
+                                    )}
+                                    g
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Summary Stats */}
+                      <div className={styles.historySummary}>
+                        <div className={styles.summaryStats}>
+                          <div className={styles.summaryState}>
+                            <span className={styles.summaryLabel}>
+                              Protein:
+                            </span>
+                            <span
+                              className={`${styles.summaryValue} ${
+                                entry.macros.protein >= targets.protein
+                                  ? styles.targetMet
+                                  : styles.targetMissed
+                              }`}
+                            >
+                              {entry.macros.protein}g / {targets.protein}g
+                            </span>
+                          </div>
+                          <div className={styles.summaryState}>
+                            <span className={styles.summaryLabel}>Carbs:</span>
+                            <span
+                              className={`${styles.summaryValue} ${
+                                entry.macros.carbs >= targets.carbs
+                                  ? styles.targetMet
+                                  : styles.targetMissed
+                              }`}
+                            >
+                              {entry.macros.carbs}g / {targets.carbs}g
+                            </span>
+                          </div>
+                          <div className={styles.summaryState}>
+                            <span className={styles.summaryLabel}>Fat:</span>
+                            <span
+                              className={`${styles.summaryValue} ${
+                                entry.macros.fat >= targets.fat
+                                  ? styles.targetMet
+                                  : styles.targetMissed
+                              }`}
+                            >
+                              {entry.macros.fat}g / {targets.fat}g
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </main>

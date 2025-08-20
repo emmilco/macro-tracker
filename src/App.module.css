@@ -1427,3 +1427,224 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.historyContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.noHistory {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--surface);
+  border-radius: var(--border-radius);
+  border: 2px dashed var(--border);
+  margin: 2rem 0;
+}
+
+.noHistory p:first-child {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.noHistoryHint {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.historyEntry {
+  background: var(--surface);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.historyEntry.recentEntry {
+  border-left: 4px solid #4ade80;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
+}
+
+.historyEntry:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.historyDate h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.dayTypeBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--primary-gradient);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.historyMacros {
+  display: flex;
+  align-items: center;
+}
+
+.historyMacroProgress {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--background);
+  border-radius: var(--border-radius);
+}
+
+.historyFoods {
+  margin-bottom: 1rem;
+}
+
+.historyFoodsTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.historyFoodsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.historyFoodItem {
+  padding: 0.5rem;
+  background: var(--background);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.historyFoodInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.historyFoodName {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.historyFoodMacros {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.historySummary {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.summaryStats {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.summaryState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.summaryLabel {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.summaryValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.targetMet {
+  color: #16a34a;
+}
+
+.targetMissed {
+  color: #dc2626;
+}
+
+/* Mobile Responsive Styles for History */
+@media (max-width: 767px) {
+  .historyContainer {
+    gap: 1rem;
+  }
+
+  .historyEntry {
+    padding: 1rem;
+  }
+
+  .historyHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .historyDate h3 {
+    font-size: 1rem;
+  }
+
+  .historyMacroProgress {
+    gap: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .historyFoodInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .summaryStats {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .summaryState {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}

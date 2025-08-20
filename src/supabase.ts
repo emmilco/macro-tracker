@@ -165,6 +165,16 @@ export const dbUtils = {
     if (error) throw error;
   },
 
+  async getHistoricalDailyEntries(excludeDate: string) {
+    const { data, error } = await supabase
+      .from("daily_entries")
+      .select("*")
+      .neq("date", excludeDate)
+      .order("date", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
   // Settings
   async getSettings() {
     const { data, error } = await supabase
