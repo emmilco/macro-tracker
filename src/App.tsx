@@ -175,50 +175,54 @@ const FoodTile: React.FC<FoodTileProps> = ({
     <div className={styles.foodTile} onClick={() => onAddFood(food)}>
       <div className={styles.foodTileHeader}>
         <h3 className={styles.foodName}>{food.name}</h3>
-        <div className={styles.foodActions}>
-          <button
-            className={styles.foodMenu}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowMenu(!showMenu);
-            }}
-          >
-            ⋯
-          </button>
-          {showMenu && (
-            <div className={styles.foodMenuDropdown}>
-              <button
-                className={styles.foodMenuOption}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditFood(food);
-                  setShowMenu(false);
-                }}
-              >
-                Edit
-              </button>
-              <button
-                className={`${styles.foodMenuOption} ${styles.delete}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteFood(food);
-                  setShowMenu(false);
-                }}
-              >
-                Delete
-              </button>
-            </div>
+        <div className={styles.foodTileRight}>
+          {food.frequency > 0 && (
+            <div className={styles.frequency}>{food.frequency}×</div>
           )}
+          <div className={styles.foodActions}>
+            <button
+              className={styles.foodMenu}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+            >
+              ⋯
+            </button>
+            {showMenu && (
+              <div className={styles.foodMenuDropdown}>
+                <button
+                  className={styles.foodMenuOption}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditFood(food);
+                    setShowMenu(false);
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  className={`${styles.foodMenuOption} ${styles.delete}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteFood(food);
+                    setShowMenu(false);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-      {food.frequency > 0 && (
-        <div className={styles.frequency}>{food.frequency}×</div>
-      )}
-      <div className={styles.portionSize}>{food.portion_size}</div>
-      <div className={styles.macroInfo}>
-        <span>P: {food.protein}</span>
-        <span>C: {food.carbs}</span>
-        <span>F: {food.fat}</span>
+      <div className={styles.foodInfo}>
+        <div className={styles.portionSize}>{food.portion_size}</div>
+        <div className={styles.macroInfo}>
+          <span className={styles.macroValue}>P:{food.protein}</span>
+          <span className={styles.macroValue}>C:{food.carbs}</span>
+          <span className={styles.macroValue}>F:{food.fat}</span>
+        </div>
       </div>
     </div>
   );
@@ -355,18 +359,17 @@ const EditFoodModal: React.FC<EditFoodModalProps> = ({
 const App: React.FC = () => {
   // State
   const [currentTab, setCurrentTab] = useState<
-    "today" | "history" | "settings"
+    "today" | "history" | "meal-builder" | "settings"
   >("today");
   const [dayType, setDayType] = useState<"workout" | "rest">("workout");
   const [foods, setFoods] = useState<Food[]>([]);
-  const [recentlyAddedFoods, setRecentlyAddedFoods] = useState<Food[]>([]);
   const [dailyEntry, setDailyEntry] = useState<DailyEntry | null>(null);
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showAddFoodForm, setShowAddFoodForm] = useState(false);
+  const [showAddFoodModal, setShowAddFoodModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [newFoodForm, setNewFoodForm] = useState({
     name: "",
@@ -376,6 +379,16 @@ const App: React.FC = () => {
     fat: 0,
   });
 
+  // Meal Builder state
+  const [mealForm, setMealForm] = useState({
+    name: "",
+    portions: 1,
+  });
+  const [mealFoods, setMealFoods] = useState<(Food & { quantity: number })[]>(
+    []
+  );
+  const [mealSearchTerm, setMealSearchTerm] = useState("");
+
   const today = formatDate(new Date());
   const currentMacros = calculateMacros(foodEntries);
   const targets = getTargets(settings, dailyEntry?.day_type || dayType);
@@ -383,6 +396,21 @@ const App: React.FC = () => {
   // Filter foods based on search term
   const filteredFoods = foods.filter((food) =>
     food.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Filter foods for meal builder
+  const filteredMealFoods = foods.filter((food) =>
+    food.name.toLowerCase().includes(mealSearchTerm.toLowerCase())
+  );
+
+  // Calculate meal totals
+  const mealTotals = mealFoods.reduce(
+    (totals, food) => ({
+      protein: totals.protein + food.protein * food.quantity,
+      carbs: totals.carbs + food.carbs * food.quantity,
+      fat: totals.fat + food.fat * food.quantity,
+    }),
+    { protein: 0, carbs: 0, fat: 0 }
   );
 
   // Load initial data
@@ -400,14 +428,8 @@ const App: React.FC = () => {
           }
           const newFoodsData = await dbUtils.getFoods();
           setFoods(newFoodsData);
-          // Load recently added foods after populating defaults
-          const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
-          setRecentlyAddedFoods(recentFoodsData);
         } else {
           setFoods(foodsData);
-          // Load recently added foods
-          const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
-          setRecentlyAddedFoods(recentFoodsData);
         }
 
         // Load settings
@@ -538,10 +560,7 @@ const App: React.FC = () => {
       const newFood = await dbUtils.createFood(newFoodForm);
       setFoods([...foods, newFood]);
 
-      // Update recently added foods
-      const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
-      setRecentlyAddedFoods(recentFoodsData);
-
+      // Clear form
       setNewFoodForm({
         name: "",
         portion_size: "",
@@ -549,8 +568,12 @@ const App: React.FC = () => {
         carbs: 0,
         fat: 0,
       });
-      // Collapse the form after successful submission
-      setShowAddFoodForm(false);
+
+      // Close the modal
+      setShowAddFoodModal(false);
+
+      // Automatically add the new food to today's meals
+      await handleAddFood(newFood);
     } catch (error) {
       console.error("Error adding new food:", error);
     }
@@ -570,10 +593,6 @@ const App: React.FC = () => {
         foods.map((food) => (food.id === updatedFood.id ? updatedFood : food))
       );
 
-      // Update recently added foods in case the edited food is in the recent list
-      const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
-      setRecentlyAddedFoods(recentFoodsData);
-
       setShowEditModal(false);
       setEditingFood(null);
     } catch (error) {
@@ -587,10 +606,6 @@ const App: React.FC = () => {
       try {
         await dbUtils.deleteFood(food.id);
         setFoods(foods.filter((f) => f.id !== food.id));
-
-        // Update recently added foods in case the deleted food was in the recent list
-        const recentFoodsData = await dbUtils.getRecentlyAddedFoods(3);
-        setRecentlyAddedFoods(recentFoodsData);
       } catch (error) {
         console.error("Error deleting food:", error);
       }
@@ -609,6 +624,66 @@ const App: React.FC = () => {
     }
   };
 
+  // Meal Builder functions
+  const handleAddFoodToMeal = (food: Food) => {
+    const existingFood = mealFoods.find((f) => f.id === food.id);
+    if (existingFood) {
+      setMealFoods(
+        mealFoods.map((f) =>
+          f.id === food.id ? { ...f, quantity: f.quantity + 1 } : f
+        )
+      );
+    } else {
+      setMealFoods([...mealFoods, { ...food, quantity: 1 }]);
+    }
+  };
+
+  const handleRemoveFoodFromMeal = (foodId: string) => {
+    setMealFoods(mealFoods.filter((f) => f.id !== foodId));
+  };
+
+  const handleUpdateMealFoodQuantity = (foodId: string, quantity: number) => {
+    if (quantity <= 0) {
+      handleRemoveFoodFromMeal(foodId);
+    } else {
+      setMealFoods(
+        mealFoods.map((f) => (f.id === foodId ? { ...f, quantity } : f))
+      );
+    }
+  };
+
+  const handleCreateMeal = async () => {
+    if (!mealForm.name || mealFoods.length === 0 || mealForm.portions <= 0) {
+      alert(
+        "Please provide a meal name, add at least one food, and set a valid number of portions."
+      );
+      return;
+    }
+
+    try {
+      const newMeal = {
+        name: mealForm.name,
+        portion_size: "1 portion",
+        protein: Math.round((mealTotals.protein / mealForm.portions) * 10) / 10,
+        carbs: Math.round((mealTotals.carbs / mealForm.portions) * 10) / 10,
+        fat: Math.round((mealTotals.fat / mealForm.portions) * 10) / 10,
+      };
+
+      const createdFood = await dbUtils.createFood(newMeal);
+      setFoods([...foods, createdFood]);
+
+      // Reset form
+      setMealForm({ name: "", portions: 1 });
+      setMealFoods([]);
+      setMealSearchTerm("");
+
+      alert(`Meal "${newMeal.name}" created successfully!`);
+    } catch (error) {
+      console.error("Error creating meal:", error);
+      alert("Error creating meal. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>Loading...</div>
@@ -621,22 +696,31 @@ const App: React.FC = () => {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.title}>Macro Tracker</h1>
-          <div className={styles.dayTypeToggle}>
+          <div className={styles.headerRight}>
+            <div className={styles.dayTypeToggle}>
+              <button
+                className={`${styles.dayTypeButton} ${
+                  dayType === "workout" ? styles.active : ""
+                }`}
+                onClick={() => handleDayTypeChange("workout")}
+              >
+                💪 Workout
+              </button>
+              <button
+                className={`${styles.dayTypeButton} ${
+                  dayType === "rest" ? styles.active : ""
+                }`}
+                onClick={() => handleDayTypeChange("rest")}
+              >
+                🧘 Rest
+              </button>
+            </div>
             <button
-              className={`${styles.dayTypeButton} ${
-                dayType === "workout" ? styles.active : ""
-              }`}
-              onClick={() => handleDayTypeChange("workout")}
+              className={styles.addFoodButton}
+              onClick={() => setShowAddFoodModal(true)}
             >
-              💪 Workout
-            </button>
-            <button
-              className={`${styles.dayTypeButton} ${
-                dayType === "rest" ? styles.active : ""
-              }`}
-              onClick={() => handleDayTypeChange("rest")}
-            >
-              🧘 Rest
+              <span>+</span>
+              Add Food
             </button>
           </div>
         </div>
@@ -660,6 +744,14 @@ const App: React.FC = () => {
             onClick={() => setCurrentTab("history")}
           >
             History
+          </button>
+          <button
+            className={`${styles.navTab} ${
+              currentTab === "meal-builder" ? styles.active : ""
+            }`}
+            onClick={() => setCurrentTab("meal-builder")}
+          >
+            Meal Builder
           </button>
           <button
             className={`${styles.navTab} ${
@@ -754,135 +846,11 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {/* Add New Food */}
-            <div className={styles.addFoodForm}>
-              <div
-                className={styles.addFoodHeader}
-                onClick={() => setShowAddFoodForm(!showAddFoodForm)}
-              >
-                <h2 className={styles.sectionTitle}>Add New Food</h2>
-                <span
-                  className={`${styles.toggleIcon} ${
-                    showAddFoodForm ? styles.expanded : ""
-                  }`}
-                >
-                  {showAddFoodForm ? "−" : "+"}
-                </span>
-              </div>
-              <form onSubmit={handleAddNewFood}>
-                <div
-                  className={`${styles.formGrid} ${
-                    showAddFoodForm ? styles.expanded : ""
-                  }`}
-                >
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Name</label>
-                    <input
-                      type="text"
-                      className={styles.formInput}
-                      value={newFoodForm.name}
-                      onChange={(e) =>
-                        setNewFoodForm({ ...newFoodForm, name: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Portion Size</label>
-                    <input
-                      type="text"
-                      className={styles.formInput}
-                      value={newFoodForm.portion_size}
-                      onChange={(e) =>
-                        setNewFoodForm({
-                          ...newFoodForm,
-                          portion_size: e.target.value,
-                        })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Protein (g)</label>
-                    <input
-                      type="number"
-                      className={styles.formInput}
-                      value={newFoodForm.protein}
-                      onChange={(e) =>
-                        setNewFoodForm({
-                          ...newFoodForm,
-                          protein: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                      step="0.1"
-                      required
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Carbs (g)</label>
-                    <input
-                      type="number"
-                      className={styles.formInput}
-                      value={newFoodForm.carbs}
-                      onChange={(e) =>
-                        setNewFoodForm({
-                          ...newFoodForm,
-                          carbs: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                      step="0.1"
-                      required
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Fat (g)</label>
-                    <input
-                      type="number"
-                      className={styles.formInput}
-                      value={newFoodForm.fat}
-                      onChange={(e) =>
-                        setNewFoodForm({
-                          ...newFoodForm,
-                          fat: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                      step="0.1"
-                      required
-                    />
-                  </div>
-                  <button type="submit" className={styles.submitButton}>
-                    Add Food
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            {/* Recently Added Foods */}
-            {recentlyAddedFoods.length > 0 && (
-              <div className={styles.foodSection}>
-                <h2 className={styles.sectionTitle}>Recently Added Foods</h2>
-                <div className={styles.recentFoodGrid}>
-                  {recentlyAddedFoods.map((food) => (
-                    <FoodTile
-                      key={food.id}
-                      food={food}
-                      onAddFood={handleAddFood}
-                      onEditFood={handleEditFood}
-                      onDeleteFood={handleDeleteFood}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Food Database */}
             <div className={styles.foodSection}>
               <h2 className={styles.sectionTitle}>Food Database</h2>
 
-              {/* Search Input */}
+              {/* Search Bar */}
               <div className={styles.searchContainer}>
                 <div className={styles.searchInputWrapper}>
                   <span className={styles.searchIcon}>🔍</span>
@@ -926,7 +894,8 @@ const App: React.FC = () => {
                   <div className={styles.noResults}>
                     <p>No foods found matching "{searchTerm}"</p>
                     <p className={styles.noResultsHint}>
-                      Try a different search term or add a new food above.
+                      Try a different search term or add a new food using the
+                      button in the header.
                     </p>
                   </div>
                 ) : (
@@ -940,6 +909,270 @@ const App: React.FC = () => {
                     />
                   ))
                 )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {currentTab === "meal-builder" && (
+          <>
+            {/* Meal Builder Header */}
+            <div className={styles.mealBuilderContainer}>
+              <h2 className={styles.sectionTitle}>Build a New Meal</h2>
+
+              {/* Meal Form */}
+              <div className={styles.mealForm}>
+                <div className={styles.mealFormRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Meal Name</label>
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      value={mealForm.name}
+                      onChange={(e) =>
+                        setMealForm({ ...mealForm, name: e.target.value })
+                      }
+                      placeholder="e.g., Protein Smoothie"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      Number of Portions
+                    </label>
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      value={mealForm.portions}
+                      onChange={(e) =>
+                        setMealForm({
+                          ...mealForm,
+                          portions: Math.max(1, Number(e.target.value)),
+                        })
+                      }
+                      min="1"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Meal Foods */}
+              {mealFoods.length > 0 && (
+                <div className={styles.currentMeal}>
+                  <h3 className={styles.sectionTitle}>
+                    Current Meal ({mealFoods.length} food
+                    {mealFoods.length !== 1 ? "s" : ""})
+                  </h3>
+                  {mealFoods.map((food) => (
+                    <div key={food.id} className={styles.mealFood}>
+                      <div className={styles.mealFoodInfo}>
+                        <div className={styles.mealFoodName}>{food.name}</div>
+                        <div className={styles.mealFoodMacros}>
+                          P: {Math.round(food.protein * food.quantity)}g, C:{" "}
+                          {Math.round(food.carbs * food.quantity)}g, F:{" "}
+                          {Math.round(food.fat * food.quantity)}g
+                        </div>
+                      </div>
+                      <div className={styles.mealFoodControls}>
+                        <div className={styles.multiplierControls}>
+                          <button
+                            className={styles.multiplierButton}
+                            onClick={() =>
+                              handleUpdateMealFoodQuantity(
+                                food.id,
+                                food.quantity - 1
+                              )
+                            }
+                          >
+                            −
+                          </button>
+                          <span className={styles.multiplierValue}>
+                            {food.quantity}
+                          </span>
+                          <button
+                            className={styles.multiplierButton}
+                            onClick={() =>
+                              handleUpdateMealFoodQuantity(
+                                food.id,
+                                food.quantity + 1
+                              )
+                            }
+                          >
+                            +
+                          </button>
+                        </div>
+                        <button
+                          className={styles.removeButton}
+                          onClick={() => handleRemoveFoodFromMeal(food.id)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Meal Totals */}
+                  <div className={styles.mealTotals}>
+                    <div className={styles.mealTotalsTitle}>
+                      Total per portion ({mealForm.portions} portion
+                      {mealForm.portions !== 1 ? "s" : ""}):
+                    </div>
+                    <div className={styles.mealTotalsMacros}>
+                      <span>
+                        P:{" "}
+                        {Math.round(
+                          (mealTotals.protein / mealForm.portions) * 10
+                        ) / 10}
+                        g
+                      </span>
+                      <span>
+                        C:{" "}
+                        {Math.round(
+                          (mealTotals.carbs / mealForm.portions) * 10
+                        ) / 10}
+                        g
+                      </span>
+                      <span>
+                        F:{" "}
+                        {Math.round((mealTotals.fat / mealForm.portions) * 10) /
+                          10}
+                        g
+                      </span>
+                      <span>
+                        Cal:{" "}
+                        {Math.round(
+                          ((mealTotals.protein * 4 +
+                            mealTotals.carbs * 4 +
+                            mealTotals.fat * 9) /
+                            mealForm.portions) *
+                            10
+                        ) / 10}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Create Meal Button */}
+                  <button
+                    className={styles.createMealButton}
+                    onClick={handleCreateMeal}
+                    disabled={!mealForm.name || mealFoods.length === 0}
+                  >
+                    Create Meal
+                  </button>
+                </div>
+              )}
+
+              {/* Add Foods to Meal */}
+              <div className={styles.foodSection}>
+                <h3 className={styles.sectionTitle}>Add Foods to Meal</h3>
+
+                {/* Meal Search */}
+                <div className={styles.searchContainer}>
+                  <div className={styles.searchInputWrapper}>
+                    <span className={styles.searchIcon}>🔍</span>
+                    <input
+                      type="text"
+                      placeholder="Search foods to add..."
+                      value={mealSearchTerm}
+                      onChange={(e) => setMealSearchTerm(e.target.value)}
+                      className={styles.searchInput}
+                    />
+                    {mealSearchTerm && (
+                      <button
+                        onClick={() => setMealSearchTerm("")}
+                        className={styles.clearSearch}
+                        aria-label="Clear search"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  {mealSearchTerm && (
+                    <div className={styles.searchResults}>
+                      {filteredMealFoods.length} food
+                      {filteredMealFoods.length !== 1 ? "s" : ""} found
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.foodGrid}>
+                  {filteredMealFoods.length > 0 ? (
+                    filteredMealFoods.map((food) => (
+                      <div
+                        key={food.id}
+                        className={styles.mealFoodTile}
+                        onClick={() => handleAddFoodToMeal(food)}
+                      >
+                        <div className={styles.foodTileHeader}>
+                          <h3 className={styles.foodName}>{food.name}</h3>
+                          <div className={styles.foodTileRight}>
+                            {food.frequency > 0 && (
+                              <div className={styles.frequency}>
+                                {food.frequency}×
+                              </div>
+                            )}
+                            <span className={styles.addIcon}>+</span>
+                          </div>
+                        </div>
+                        <div className={styles.foodInfo}>
+                          <div className={styles.portionSize}>
+                            {food.portion_size}
+                          </div>
+                          <div className={styles.macroInfo}>
+                            <span className={styles.macroValue}>
+                              P:{food.protein}
+                            </span>
+                            <span className={styles.macroValue}>
+                              C:{food.carbs}
+                            </span>
+                            <span className={styles.macroValue}>
+                              F:{food.fat}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : mealSearchTerm ? (
+                    <div className={styles.noResults}>
+                      <p>No foods found matching "{mealSearchTerm}"</p>
+                    </div>
+                  ) : (
+                    foods.map((food) => (
+                      <div
+                        key={food.id}
+                        className={styles.mealFoodTile}
+                        onClick={() => handleAddFoodToMeal(food)}
+                      >
+                        <div className={styles.foodTileHeader}>
+                          <h3 className={styles.foodName}>{food.name}</h3>
+                          <div className={styles.foodTileRight}>
+                            {food.frequency > 0 && (
+                              <div className={styles.frequency}>
+                                {food.frequency}×
+                              </div>
+                            )}
+                            <span className={styles.addIcon}>+</span>
+                          </div>
+                        </div>
+                        <div className={styles.foodInfo}>
+                          <div className={styles.portionSize}>
+                            {food.portion_size}
+                          </div>
+                          <div className={styles.macroInfo}>
+                            <span className={styles.macroValue}>
+                              P:{food.protein}
+                            </span>
+                            <span className={styles.macroValue}>
+                              C:{food.carbs}
+                            </span>
+                            <span className={styles.macroValue}>
+                              F:{food.fat}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </>
@@ -1096,6 +1329,106 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Add New Food Modal */}
+      {showAddFoodModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Add New Food</h2>
+              <button
+                className={styles.closeButton}
+                onClick={() => setShowAddFoodModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleAddNewFood} className={styles.modalFormGrid}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Name</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  value={newFoodForm.name}
+                  onChange={(e) =>
+                    setNewFoodForm({ ...newFoodForm, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Portion Size</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  value={newFoodForm.portion_size}
+                  onChange={(e) =>
+                    setNewFoodForm({
+                      ...newFoodForm,
+                      portion_size: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Protein (g)</label>
+                <input
+                  type="number"
+                  className={styles.formInput}
+                  value={newFoodForm.protein}
+                  onChange={(e) =>
+                    setNewFoodForm({
+                      ...newFoodForm,
+                      protein: Number(e.target.value),
+                    })
+                  }
+                  min="0"
+                  step="0.1"
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Carbs (g)</label>
+                <input
+                  type="number"
+                  className={styles.formInput}
+                  value={newFoodForm.carbs}
+                  onChange={(e) =>
+                    setNewFoodForm({
+                      ...newFoodForm,
+                      carbs: Number(e.target.value),
+                    })
+                  }
+                  min="0"
+                  step="0.1"
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Fat (g)</label>
+                <input
+                  type="number"
+                  className={styles.formInput}
+                  value={newFoodForm.fat}
+                  onChange={(e) =>
+                    setNewFoodForm({
+                      ...newFoodForm,
+                      fat: Number(e.target.value),
+                    })
+                  }
+                  min="0"
+                  step="0.1"
+                  required
+                />
+              </div>
+              <button type="submit" className={styles.submitButton}>
+                Add Food
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Edit Food Modal */}
       <EditFoodModal
