@@ -1,5 +1,8 @@
 # Macro Tracker
 
+> [!NOTE]  
+> This application was built largely as an exercise in using an LLM to code. Nearly all of the code is AI-generated. This should also explain some of the peculiarities of the project, including the minimal file structure (which was chose to make code changes more efficient for rapid development). Everything from here on out in this README is AI-generated.
+
 A comprehensive macro tracking web application built with React, TypeScript, and Supabase. Track your daily food intake with real-time macro calculations, support for workout/rest day targets, and a beautiful modern interface.
 
 ![Macro Tracker Screenshot](screenshot.png)
