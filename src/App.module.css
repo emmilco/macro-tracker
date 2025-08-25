@@ -1894,3 +1894,44 @@ body {
   border-radius: 2px;
   transition: width 0.3s ease;
 }
+
+/* Header Attribution Styles */
+/* Add these styles to your App.module.css file */
+
+.headerTitle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.attribution {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  line-height: 1;
+}
+
+.attribution:hover {
+  color: rgba(255, 255, 255, 0.95);
+  text-decoration: underline;
+  transform: translateY(-1px);
+}
+
+.attribution:active {
+  transform: translateY(0);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+  .headerTitle {
+    align-items: center;
+    text-align: center;
+  }
+
+  .attribution {
+    font-size: 0.65rem;
+  }
+}

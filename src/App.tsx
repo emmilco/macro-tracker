@@ -858,7 +858,17 @@ const App: React.FC = () => {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>Macro Tracker</h1>
+          <div className={styles.headerTitle}>
+            <h1 className={styles.title}>Macro Tracker</h1>
+            <a
+              href="https://www.emmilco.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.attribution}
+            >
+              created by Elliot Milco
+            </a>
+          </div>{" "}
           <div className={styles.headerRight}>
             <div className={styles.dayTypeToggle}>
               <button
