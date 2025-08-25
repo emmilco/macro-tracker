@@ -1935,3 +1935,62 @@ body {
     font-size: 0.65rem;
   }
 }
+
+/* Login Page Attribution Styles */
+/* Add these styles to your App.module.css file */
+
+.loginHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.loginTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.loginAttribution {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  line-height: 1;
+}
+
+.loginAttribution:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+  transform: translateY(-1px);
+}
+
+.loginAttribution:active {
+  transform: translateY(0);
+}
+
+.loginSubtitle {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  margin-top: 0;
+}
+
+/* Mobile responsive adjustments for login */
+@media (max-width: 767px) {
+  .loginTitle {
+    font-size: 1.75rem;
+  }
+
+  .loginAttribution {
+    font-size: 0.75rem;
+  }
+
+  .loginSubtitle {
+    font-size: 1rem;
+  }
+}

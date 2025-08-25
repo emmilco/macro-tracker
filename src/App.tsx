@@ -97,7 +97,17 @@ const LoginScreen: React.FC = () => {
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginCard}>
-        <h1 className={styles.loginTitle}>Macro Tracker</h1>
+        <div className={styles.loginHeader}>
+          <h1 className={styles.loginTitle}>Macro Tracker</h1>
+          <a
+            href="https://www.emmilco.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.loginAttribution}
+          >
+            created by Elliot Milco
+          </a>
+        </div>
         <p className={styles.loginSubtitle}>
           Track your nutrition goals with precision
         </p>
@@ -111,7 +121,7 @@ const LoginScreen: React.FC = () => {
             <span>Signing in...</span>
           ) : (
             <>
-              <span className={styles.googleIcon}>🔐</span>
+              <span className={styles.googleIcon}>🔑</span>
               Sign in with Google
             </>
           )}
