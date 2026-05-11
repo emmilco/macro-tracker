@@ -1,180 +1,138 @@
 # Macro Tracker
 
-A comprehensive macro tracking web application built with React, TypeScript, and Supabase. Track your daily food intake with real-time macro calculations, support for workout/rest day targets, and a beautiful modern interface.
+Personal macro tracking web app: React + TypeScript + Vite frontend, FastAPI + sqlite backend, served from a single port. Designed to run locally on a Mac and be exposed on the public internet via Cloudflare Tunnel + Cloudflare Access (gated by Google SSO + passkey) using the [`lab-server`](https://github.com/emmilco/lab-server) orchestrator.
 
-![Macro Tracker Screenshot](screenshot.png)
+> **Architecture history:** originally built on Supabase (cloud Postgres + auth). Migrated to local sqlite + FastAPI on 2026-05-09 — auth removed (Cloudflare Access handles it at the edge), data lives in `backend/data/macro.db`.
 
 ## Features
 
-- 📊 **Real-time Macro Tracking** - Visual progress bars showing protein, carbs, and fat intake
-- 🏋️ **Workout/Rest Day Support** - Different macro targets for training and recovery days
-- 🍎 **Food Database** - Pre-populated with common foods, frequency tracking, full CRUD operations
-- 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
-- 💾 **Historical Preservation** - Food edits don't affect past entries (data integrity)
-- ⚡ **Real-time Updates** - Instant feedback as you add foods and adjust quantities
-- 🎨 **Modern UI** - Clean, professional design with subdued but cheerful colors
+- Real-time macro tracking with progress bars (protein, carbs, fat).
+- Workout vs. rest day macro targets.
+- Food database with frequency tracking.
+- Historical preservation: edits to a food's macros only affect future entries; past food_entries snapshot the values at log time.
+- Mobile-first responsive layout.
 
-## Tech Stack
+## Tech stack
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: CSS Modules (no PostCSS configuration needed)
-- **Backend**: Supabase (PostgreSQL)
-- **Deployment**: Netlify-ready
-- **Cost**: 100% free tier compatible
+- **Frontend**: React 18 + TypeScript + Vite. Built once via `npm run build` → static assets in `dist/`.
+- **Backend**: FastAPI + sqlite (Python 3.11+). Serves both `/api/*` JSON endpoints and the built frontend's static files from a single uvicorn process on `127.0.0.1:7100`.
+- **Auth**: none in-app. Cloudflare Access at the edge gates `macro.emmilco.com` behind the operator's Google account + passkey.
+- **Hosting**: registered as the `macro` sub-app in `lab-server`'s `apps.toml`. Lab-server is launchd-managed, always-on while the Mac is awake; cloudflared tunnels public traffic to `127.0.0.1:7100`.
 
-## Quick Start
-
-### 1. Clone and Install
-
-```bash
-git clone <your-repo-url>
-cd macro-tracker
-npm install
-```
-
-### 2. Set up Supabase
-
-1. Create a free account at [supabase.com](https://supabase.com)
-2. Create a new project
-3. Go to SQL Editor and run the schema from `database/schema.sql`
-4. Get your project URL and anon key from Settings > API
-
-### 3. Configure Environment
-
-Update `src/supabase.ts` with your Supabase credentials:
-
-```typescript
-const supabaseUrl = "YOUR_SUPABASE_URL";
-const supabaseAnonKey = "YOUR_SUPABASE_ANON_KEY";
-```
-
-### 4. Run Development Server
-
-```bash
-npm run dev
-```
-
-Visit `http://localhost:5173` to see your app!
-
-### 5. Deploy to Netlify
-
-1. Build the project: `npm run build`
-2. Deploy the `dist` folder to Netlify
-3. Or connect your GitHub repo for automatic deployments
-
-## Database Schema
-
-The app uses a carefully designed schema that preserves historical data:
-
-- **foods** - Master food database with frequency tracking
-- **daily_entries** - Daily logs with workout/rest day types
-- **food_entries** - Specific food consumption with historical snapshots
-- **user_settings** - Macro targets for both day types
-
-## Key Features Explained
-
-### Historical Data Preservation
-
-When you edit a food's macros, it only affects future entries. Past daily logs retain the original food data as "snapshots" in the `food_entries` table.
-
-### Frequency Tracking
-
-Foods are automatically sorted by usage frequency, putting your most-used items at the top for quick access.
-
-### Macro Visualization
-
-Vertical bar charts provide intuitive progress tracking with color-coded macros:
-
-- 🟢 Protein (muted pink)
-- 🔵 Carbs (sage green)
-- 🟡 Fat (warm amber)
-
-### Responsive Design
-
-The interface adapts beautifully to all screen sizes with CSS Grid and Flexbox layouts.
-
-## Default Foods
-
-The app comes pre-populated with 10 common foods:
-
-- Ground Beef (93/7) - 8oz serving
-- Jasmine Rice - 1 cup cooked
-- Large Banana - 1 large (126g)
-- Whole Eggs - 2 large eggs
-- Broccoli - 1 cup chopped
-- Olive Oil - 1 tablespoon
-- Chicken Thigh - 180g cooked
-- Chicken Breast - 180g cooked
-- Shrimp - 6oz
-- Tilapia - 4oz
-
-## Default Macro Targets
-
-- **Workout Day**: 180g protein, 250g carbs, 80g fat (2,040 calories)
-- **Rest Day**: 180g protein, 150g carbs, 100g fat (1,940 calories)
-
-## File Structure
+## Layout
 
 ```
 macro-tracker/
-├── src/
-│   ├── App.tsx           # Main application component
-│   ├── App.module.css    # All styles using CSS modules
+├── src/                  # React frontend
+│   ├── App.tsx           # Main component (no auth — Cloudflare Access handles it)
+│   ├── App.module.css    # Styles
+│   ├── api.ts            # fetch-based wrapper for /api/* (replaces former supabase.ts)
 │   ├── types.ts          # TypeScript interfaces
-│   ├── supabase.ts       # Database client and utilities
 │   └── main.tsx          # React entry point
-├── database/
-│   └── schema.sql        # Complete database schema
-├── index.html           # HTML template
-├── package.json         # Dependencies and scripts
-├── vite.config.ts      # Vite configuration
-└── tsconfig.json       # TypeScript configuration
+├── backend/              # Python backend (NEW since Path B migration)
+│   ├── server.py         # FastAPI app: /api/* endpoints + static-file serving
+│   ├── init_db.py        # Migration: parse Supabase SQL exports → local sqlite
+│   ├── requirements.txt  # fastapi, uvicorn
+│   ├── .venv/            # virtualenv (gitignored)
+│   └── data/
+│       └── macro.db      # sqlite (gitignored)
+├── database/             # Legacy Supabase schema (reference only; not used at runtime)
+│   ├── database-schema.sql
+│   ├── add-auth-schema.sql
+│   └── update-foods.sql
+├── dist/                 # Built React assets (gitignored, generated by `npm run build`)
+├── index.html            # Vite entry
+├── package.json
+├── vite.config.ts
+└── tsconfig.json
 ```
 
-## Customization
+## Running locally (manual)
 
-### Colors
+```bash
+# 1. Backend deps + venv
+cd backend
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
 
-Update CSS variables in `App.module.css`:
+# 2. Frontend deps + build
+cd ..
+npm install
+npm run build      # writes to dist/
 
-```css
-:root {
-  --protein-color: #d97098; /* Muted pink */
-  --carbs-color: #5fa877; /* Sage green */
-  --fat-color: #e6a852; /* Warm amber */
-  --primary-gradient: linear-gradient(135deg, #6b7fce 0%, #7c63a8 100%);
-}
+# 3. Start the server
+backend/.venv/bin/uvicorn backend.server:app --host 127.0.0.1 --port 7100
 ```
 
-### Macro Targets
+Visit `http://127.0.0.1:7100/`. The FastAPI app serves the React app at `/` and JSON endpoints at `/api/*`.
 
-Modify defaults in the settings page or update the database schema.
+## Running via lab-server (production)
 
-### Food Database
+The `macro` sub-app is registered in `lab-server/apps.toml`:
 
-Add your own foods through the UI or bulk import via SQL.
+```toml
+[apps.macro]
+working_dir = "/Users/elliotmilco/Documents/GitHub/macro-tracker"
+start_command = "backend/.venv/bin/uvicorn backend.server:app --host 127.0.0.1 --port 7100"
+port = 7100
+enabled = true
+```
 
-## Contributing
+When the lab-server LaunchAgent is loaded, this starts automatically and the app is reachable at `https://macro.emmilco.com` (after Google SSO via Cloudflare Access).
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+To pick up frontend changes after editing React code: `npm run build`, then `launchctl kickstart -k gui/$(id -u)/com.emmilco.lab-server` to restart the daemon (which restarts uvicorn with the new `dist/`).
 
-## License
+## Database
 
-MIT License - feel free to use this project for personal or commercial purposes.
+Single sqlite file at `backend/data/macro.db`. Tables:
 
-## Support
+- `foods` — master food database with frequency tracking.
+- `daily_entries` — daily logs with `day_type` (workout / rest).
+- `food_entries` — per-day food consumption with snapshotted food data for historical preservation.
+- `user_settings` — workout / rest macro targets (single row, single user).
 
-If you encounter any issues:
+Schema file (sqlite-flavored) is created by `backend/init_db.py` at first run.
 
-1. Check the browser console for errors
-2. Verify your Supabase connection
-3. Ensure the database schema is properly set up
-4. Open an issue with details about the problem
+## Initial data migration (one-time, already done)
 
----
+`backend/init_db.py` parses PostgreSQL `INSERT` exports from the legacy Supabase project and imports them into local sqlite. The migration filtered to a single user (multi-user fields were dropped since auth is now external). Re-running with `--reset` drops the local db and re-imports.
 
-Built with ❤️ for the fitness and nutrition community.
+## API surface
+
+JSON endpoints exposed by `backend/server.py`:
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET`    | `/api/foods` | list, ordered by frequency desc |
+| `POST`   | `/api/foods` | create new food |
+| `PATCH`  | `/api/foods/{id}` | update food |
+| `DELETE` | `/api/foods/{id}` | delete food |
+| `POST`   | `/api/foods/{id}/increment-frequency` | bump usage counter |
+| `GET`    | `/api/daily-entries/by-date/{date}` | get day's entry (or null) |
+| `POST`   | `/api/daily-entries` | create day entry |
+| `PATCH`  | `/api/daily-entries/{id}` | update day type |
+| `GET`    | `/api/daily-entries/historical?exclude={date}` | list history |
+| `GET`    | `/api/food-entries?daily_entry_id={id}` | list day's foods |
+| `POST`   | `/api/food-entries` | log a food |
+| `PATCH`  | `/api/food-entries/{id}` | update multiplier |
+| `DELETE` | `/api/food-entries/{id}` | delete a food log |
+| `GET`    | `/api/settings` | get macro targets |
+| `PUT`    | `/api/settings` | update macro targets |
+
+The `src/api.ts` module mirrors these as typed TypeScript functions.
+
+## Default macro targets
+
+- **Workout Day**: 180g protein, 250g carbs, 80g fat (~2,040 cal)
+- **Rest Day**: 180g protein, 150g carbs, 100g fat (~1,940 cal)
+
+Both editable in the settings page (writes via `PUT /api/settings`).
+
+## Why the migration
+
+The legacy Supabase project was paused (free-tier inactivity) and increasingly fragile (third-party auth in front of a personal app, vendor lock-in, slow cold starts). Migrating to local sqlite + Cloudflare Access:
+
+- Single Mac is the source of truth — no cloud dependency.
+- Cloudflare Access provides stronger auth (Google + passkey) than Supabase's password-based flow, and is shared across every other lab-server app.
+- Free (no Supabase tier, no Netlify deploy).
+- Faster (no cold start, sqlite is microseconds).

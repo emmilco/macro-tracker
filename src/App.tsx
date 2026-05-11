@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { dbUtils, auth } from "./supabase";
+import { dbUtils } from "./api";
 import type {
   Food,
   DailyEntry,
@@ -78,62 +78,8 @@ const formatDateForDisplay = (dateString: string): string => {
   });
 };
 
-// Login Component
-const LoginScreen: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      await auth.signInWithGoogle();
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className={styles.loginContainer}>
-      <div className={styles.loginCard}>
-        <div className={styles.loginHeader}>
-          <h1 className={styles.loginTitle}>Macro Tracker</h1>
-          <a
-            href="https://www.emmilco.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.loginAttribution}
-          >
-            created by Elliot Milco
-          </a>
-        </div>
-        <p className={styles.loginSubtitle}>
-          Track your nutrition goals with precision
-        </p>
-
-        <button
-          className={styles.loginButton}
-          onClick={handleGoogleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <span>Signing in...</span>
-          ) : (
-            <>
-              <span className={styles.googleIcon}>🔑</span>
-              Sign in with Google
-            </>
-          )}
-        </button>
-
-        <p className={styles.loginFooter}>
-          Secure authentication • Your data stays private
-        </p>
-      </div>
-    </div>
-  );
-};
+// LoginScreen removed: this app sits behind Cloudflare Access (Google
+// SSO + passkey) at the edge, so in-app auth is unnecessary.
 
 // Components
 interface MacroBarProps {
@@ -370,9 +316,6 @@ const EditFoodModal: React.FC<EditFoodModalProps> = ({
 
 // Main App Component
 const App: React.FC = () => {
-  // Auth state
-  const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
   const [historyEntries, setHistoryEntries] = useState<
     (DailyEntry & {
       foodEntries: FoodEntry[];
@@ -387,10 +330,10 @@ const App: React.FC = () => {
   >("today");
 
   useEffect(() => {
-    if (currentTab === "history" && user) {
+    if (currentTab === "history") {
       loadHistoryData();
     }
-  }, [currentTab, user]);
+  }, [currentTab]);
 
   const [dayType, setDayType] = useState<"workout" | "rest">("workout");
   const [foods, setFoods] = useState<Food[]>([]);
@@ -477,63 +420,11 @@ const App: React.FC = () => {
     { protein: 0, carbs: 0, fat: 0 }
   );
 
-  // Initialize auth
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const currentUser = await auth.getCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-
-    initAuth();
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user || null);
-      if (session?.user) {
-        // User logged in, load their data
-        await loadUserData();
-      } else {
-        // User logged out, clear data
-        clearUserData();
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Clear user data on logout
-  const clearUserData = () => {
-    setFoods([]);
-    setDailyEntry(null);
-    setFoodEntries([]);
-    setSettings(null);
-    setCurrentTab("today");
-  };
-
-  // Load user data
+  // Load data
   const loadUserData = async () => {
-    if (!user) return;
-
     try {
       setLoading(true);
 
-      // Check if user has settings (indicates setup is complete)
-      const settingsData = await dbUtils.getSettings();
-
-      if (!settingsData) {
-        // New user - set up default data
-        await dbUtils.setupNewUser();
-      }
-
-      // Load all user data
       const [foodsData, settingsResult] = await Promise.all([
         dbUtils.getFoods(),
         dbUtils.getSettings(),
@@ -542,7 +433,6 @@ const App: React.FC = () => {
       setFoods(foodsData);
       setSettings(settingsResult);
 
-      // Load today's entry
       const todayEntry = await dbUtils.getDailyEntry(today);
       if (todayEntry) {
         setDailyEntry(todayEntry);
@@ -551,22 +441,18 @@ const App: React.FC = () => {
         setFoodEntries(entries);
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
+      console.error("Error loading data:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const loadHistoryData = async () => {
-    if (!user) return;
-
     try {
       setHistoryLoading(true);
 
-      // Get all daily entries except today, ordered by date descending
       const entries = await dbUtils.getHistoricalDailyEntries(today);
 
-      // Load food entries and calculate macros for each day
       const entriesWithData = await Promise.all(
         entries.map(async (entry) => {
           const foodEntries = await dbUtils.getFoodEntries(entry.id);
@@ -587,36 +473,10 @@ const App: React.FC = () => {
     }
   };
 
-  // Load data when user changes
+  // Load data on mount and when the local date rolls over
   useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
-  }, [user, today]);
-
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      await auth.signOut();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
-  // Show loading screen during auth initialization
-  if (authLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  // Show login screen if not authenticated
-  if (!user) {
-    return <LoginScreen />;
-  }
+    loadUserData();
+  }, [today]);
 
   // Handle day type change
   const handleDayTypeChange = async (newDayType: "workout" | "rest") => {
@@ -905,25 +765,6 @@ const App: React.FC = () => {
               <span>+</span>
               Add Food
             </button>
-            <div className={styles.userInfo}>
-              <img
-                src={
-                  user.user_metadata?.avatar_url ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    user.user_metadata?.full_name || "User"
-                  )}&background=475569&color=fff`
-                }
-                alt="User avatar"
-                className={styles.userAvatar}
-              />
-              <button
-                className={styles.logoutButton}
-                onClick={handleLogout}
-                title="Sign out"
-              >
-                Sign Out
-              </button>
-            </div>
           </div>
         </div>
       </header>
