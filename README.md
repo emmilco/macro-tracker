@@ -15,9 +15,9 @@ Personal macro tracking web app: React + TypeScript + Vite frontend, FastAPI + s
 ## Tech stack
 
 - **Frontend**: React 18 + TypeScript + Vite. Built once via `npm run build` → static assets in `dist/`.
-- **Backend**: FastAPI + sqlite (Python 3.11+). Serves both `/api/*` JSON endpoints and the built frontend's static files from a single uvicorn process on `127.0.0.1:7100`.
+- **Backend**: FastAPI + sqlite (Python 3.11+). Serves both `/api/*` JSON endpoints and the built frontend's static files from a single uvicorn process — bound to the Unix socket `~/.lab-sockets/macro.sock` when lab-served, or a local TCP port for manual dev.
 - **Auth**: none in-app. Cloudflare Access at the edge gates `macro.emmilco.com` behind the operator's Google account + passkey.
-- **Hosting**: registered as the `macro` sub-app in `lab-server`'s `apps.toml`. Lab-server is launchd-managed, always-on while the Mac is awake; cloudflared tunnels public traffic to `127.0.0.1:7100`.
+- **Hosting**: registered as the `macro` sub-app in `lab-server`'s `apps.toml`. Lab-server is launchd-managed, always-on while the Mac is awake; cloudflared routes `macro.emmilco.com` to the lab auth gateway, which authenticates the request and forwards it to the app's Unix socket `~/.lab-sockets/macro.sock`.
 
 ## Layout
 
@@ -64,7 +64,7 @@ npm run build      # writes to dist/
 backend/.venv/bin/uvicorn backend.server:app --host 127.0.0.1 --port 7100
 ```
 
-Visit `http://127.0.0.1:7100/`. The FastAPI app serves the React app at `/` and JSON endpoints at `/api/*`.
+To hit the lab-served instance directly (no auth needed for same-user local access): `curl --unix-socket ~/.lab-sockets/macro.sock http://localhost/` (or the helper `~/Documents/GitHub/lab-server/labcurl macro /`). For active hot-reload development, run a throwaway TCP dev server — add `--reload` to the uvicorn command above and visit `http://127.0.0.1:7100/`. The FastAPI app serves the React app at `/` and JSON endpoints at `/api/*`.
 
 ## Running via lab-server (production)
 
@@ -73,8 +73,7 @@ The `macro` sub-app is registered in `lab-server/apps.toml`:
 ```toml
 [apps.macro]
 working_dir = "/Users/elliotmilco/Documents/GitHub/macro-tracker"
-start_command = "backend/.venv/bin/uvicorn backend.server:app --host 127.0.0.1 --port 7100"
-port = 7100
+start_command = "backend/.venv/bin/uvicorn backend.server:app --uds /Users/elliotmilco/.lab-sockets/macro.sock"
 enabled = true
 ```
 
