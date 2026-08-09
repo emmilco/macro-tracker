@@ -326,3 +326,10 @@ else:
             {"error": "frontend not built", "fix": "cd macro-tracker && npm install && npm run build"},
             status_code=503,
         )
+
+
+@app.get("/healthz")
+async def healthz() -> dict[str, bool]:
+    """Supervisor liveness probe (async: answers from the event loop even
+    when the worker pool is busy — see lab-server APP_GUIDE.md)."""
+    return {"ok": True}
