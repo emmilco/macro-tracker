@@ -315,6 +315,13 @@ def update_settings(settings: SettingsIn) -> dict:
     return dict(row)
 
 
+@app.get("/healthz")
+async def healthz() -> dict[str, bool]:
+    """Supervisor liveness probe (async: answers from the event loop even
+    when the worker pool is busy — see lab-server APP_GUIDE.md)."""
+    return {"ok": True}
+
+
 # ---------- static files (built React app) ----------
 
 if DIST_DIR.exists():
@@ -327,9 +334,3 @@ else:
             status_code=503,
         )
 
-
-@app.get("/healthz")
-async def healthz() -> dict[str, bool]:
-    """Supervisor liveness probe (async: answers from the event loop even
-    when the worker pool is busy — see lab-server APP_GUIDE.md)."""
-    return {"ok": True}
