@@ -1,5 +1,8 @@
 # Macro Tracker
 
+> [!NOTE]  
+> This application was built largely as an exercise in using an LLM to code. Nearly all of the code is AI-generated. This should also explain some of the peculiarities of the project, including the minimal file structure (which was chose to make code changes more efficient for rapid development). Everything from here on out in this README is AI-generated.
+
 Personal macro tracking web app: React + TypeScript + Vite frontend, FastAPI + sqlite backend, served from a single port. Designed to run locally on a Mac and be exposed on the public internet via Cloudflare Tunnel + Cloudflare Access (gated by Google SSO + passkey) using the [`lab-server`](https://github.com/emmilco/lab-server) orchestrator.
 
 > **Architecture history:** originally built on Supabase (cloud Postgres + auth). Migrated to local sqlite + FastAPI on 2026-05-09 — auth removed (Cloudflare Access handles it at the edge), data lives in `backend/data/macro.db`.
