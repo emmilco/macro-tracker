@@ -230,6 +230,140 @@ def historical_daily_entries(exclude: str | None = None) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+@app.get("/api/history")
+def history_batch(
+    exclude: str | None = None,
+    limit: int = 30,
+    offset: int = 0,
+) -> dict:
+    """Return daily entries with their food_entries in one payload.
+
+    Avoids the N+1 the client used to do (one food-entries request per day).
+    """
+    limit = max(1, min(limit, 365))
+    offset = max(0, offset)
+    with db() as conn:
+        if exclude:
+            entries = conn.execute(
+                "SELECT * FROM daily_entries WHERE date != ?"
+                " ORDER BY date DESC LIMIT ? OFFSET ?",
+                (exclude, limit, offset),
+            ).fetchall()
+        else:
+            entries = conn.execute(
+                "SELECT * FROM daily_entries ORDER BY date DESC LIMIT ? OFFSET ?",
+                (limit, offset),
+            ).fetchall()
+        entry_ids = [e["id"] for e in entries]
+        if entry_ids:
+            placeholders = ",".join("?" for _ in entry_ids)
+            food_rows = conn.execute(
+                f"SELECT * FROM food_entries WHERE daily_entry_id IN ({placeholders})",
+                entry_ids,
+            ).fetchall()
+        else:
+            food_rows = []
+        total_row = conn.execute(
+            "SELECT COUNT(*) AS n FROM daily_entries WHERE date != ?" if exclude
+            else "SELECT COUNT(*) AS n FROM daily_entries",
+            (exclude,) if exclude else (),
+        ).fetchone()
+    by_day: dict[str, list[dict]] = {eid: [] for eid in entry_ids}
+    for r in food_rows:
+        by_day[r["daily_entry_id"]].append(dict(r))
+    return {
+        "entries": [
+            {**dict(e), "food_entries": by_day.get(e["id"], [])}
+            for e in entries
+        ],
+        "total": int(total_row["n"]) if total_row else 0,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+class CopyDayIn(BaseModel):
+    source_date: str
+    target_date: str
+    day_type: Literal["workout", "rest"] = "workout"
+
+
+@app.post("/api/daily-entries/copy", status_code=201)
+def copy_day(payload: CopyDayIn) -> dict:
+    """Copy all food_entries from source_date onto target_date.
+
+    Creates the target daily_entry if missing (using the provided day_type).
+    Does NOT clear existing entries on the target — copies are additive.
+    Returns the target entry plus its full food_entries list.
+    """
+    if payload.source_date == payload.target_date:
+        raise HTTPException(400, "source_date and target_date must differ")
+    with db() as conn:
+        src = conn.execute(
+            "SELECT * FROM daily_entries WHERE date = ?", (payload.source_date,)
+        ).fetchone()
+        if not src:
+            raise HTTPException(404, f"no daily entry on {payload.source_date}")
+        src_foods = conn.execute(
+            "SELECT * FROM food_entries WHERE daily_entry_id = ?", (src["id"],)
+        ).fetchall()
+        if not src_foods:
+            raise HTTPException(400, f"{payload.source_date} has no foods to copy")
+
+        tgt = conn.execute(
+            "SELECT * FROM daily_entries WHERE date = ?", (payload.target_date,)
+        ).fetchone()
+        if not tgt:
+            new_entry = {
+                "id": new_id(),
+                "date": payload.target_date,
+                "day_type": payload.day_type,
+                "created_at": now_iso(),
+                "updated_at": now_iso(),
+            }
+            conn.execute(
+                "INSERT INTO daily_entries (id, date, day_type, created_at, updated_at)"
+                " VALUES (:id, :date, :day_type, :created_at, :updated_at)",
+                new_entry,
+            )
+            tgt_id = new_entry["id"]
+        else:
+            tgt_id = tgt["id"]
+
+        now = now_iso()
+        for src_food in src_foods:
+            conn.execute(
+                "INSERT INTO food_entries (id, daily_entry_id, food_id, multiplier,"
+                " food_name, food_portion_size, food_protein, food_carbs, food_fat,"
+                " created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    new_id(),
+                    tgt_id,
+                    src_food["food_id"],
+                    src_food["multiplier"],
+                    src_food["food_name"],
+                    src_food["food_portion_size"],
+                    src_food["food_protein"],
+                    src_food["food_carbs"],
+                    src_food["food_fat"],
+                    now,
+                    now,
+                ),
+            )
+
+        target_entry = conn.execute(
+            "SELECT * FROM daily_entries WHERE id = ?", (tgt_id,)
+        ).fetchone()
+        target_foods = conn.execute(
+            "SELECT * FROM food_entries WHERE daily_entry_id = ? ORDER BY created_at ASC",
+            (tgt_id,),
+        ).fetchall()
+    return {
+        "entry": dict(target_entry),
+        "food_entries": [dict(f) for f in target_foods],
+    }
+
+
 @app.get("/api/food-entries")
 def list_food_entries(daily_entry_id: str) -> list[dict]:
     with db() as conn:

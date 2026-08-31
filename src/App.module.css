@@ -1,17 +1,34 @@
-/* CSS Variables */
+/* ============================================================
+   Macro Tracker — mobile-first stylesheet
+   ============================================================ */
+
 :root {
   --protein-color: #d97098;
   --carbs-color: #5fa877;
   --fat-color: #e6a852;
   --primary-gradient: linear-gradient(135deg, #475569 0%, #64748b 100%);
+  --primary: #475569;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --success: #16a34a;
   --background: #fafbfc;
   --surface: #ffffff;
-  --text-primary: #2d3748;
-  --text-secondary: #718096;
+  --surface-alt: #f6f7f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
   --border: #e2e8f0;
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.1);
-  --border-radius: 8px;
+  --border-strong: #cbd5e1;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12);
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --nav-height: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -20,228 +37,291 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   background-color: var(--background);
   color: var(--text-primary);
-  line-height: 1.6;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
 }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+}
+
+/* ---------- app shell ---------- */
 
 .app {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  padding-bottom: calc(var(--nav-height) + var(--safe-bottom));
 }
 
-/* Header */
 .header {
   background: var(--primary-gradient);
   color: white;
-  padding: 1.5rem 2rem;
-  box-shadow: var(--shadow);
-  position: relative;
-  overflow: hidden;
-}
-
-.header::before {
-  content: "";
-  position: absolute;
+  padding: calc(var(--safe-top) + 0.75rem) 1rem 0.75rem;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  pointer-events: none;
-}
-
-.headerContent {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.userInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.userAvatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.logoutButton {
-  padding: 0.4rem 0.8rem;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.logoutButton:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
-}
-
-.addFoodButton {
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.addFoodButton:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
 }
 
 .title {
-  font-size: 1.75rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  margin: 0;
+  letter-spacing: -0.01em;
+  text-align: center;
 }
 
-.dayTypeToggle {
-  display: flex;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 25px;
-  padding: 4px;
-  backdrop-filter: blur(10px);
-}
-
-.dayTypeButton {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: transparent;
-  color: white;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.dayTypeButton.active {
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Navigation */
-.nav {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 2rem;
-}
-
-.navTabs {
-  display: flex;
-  max-width: 1200px;
+.main {
+  flex: 1;
+  padding: 1rem;
+  max-width: 720px;
+  width: 100%;
   margin: 0 auto;
-  justify-content: center;
 }
 
-.navTab {
-  padding: 1rem 1.5rem;
+@media (min-width: 768px) {
+  .header {
+    padding: 1rem 2rem;
+  }
+  .title {
+    font-size: 1.4rem;
+  }
+  .main {
+    padding: 1.5rem 2rem;
+    max-width: 1080px;
+  }
+}
+
+/* ---------- bottom nav ---------- */
+
+.bottomNav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: var(--safe-bottom);
+  z-index: 40;
+  box-shadow: 0 -2px 16px rgba(15, 23, 42, 0.06);
+}
+
+.bottomNavItem {
+  flex: 1;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.5rem 0.25rem;
+  transition: color 0.15s ease;
+}
+
+.bottomNavItem svg {
+  transition: transform 0.15s ease;
+}
+
+.bottomNavItem:active svg {
+  transform: scale(0.9);
+}
+
+.bottomNavActive {
+  color: var(--primary);
+}
+
+.bottomNavActive svg {
+  stroke-width: 2.4;
+}
+
+/* ---------- FAB ---------- */
+
+.fab {
+  position: fixed;
+  right: calc(1rem + var(--safe-right));
+  bottom: calc(var(--nav-height) + var(--safe-bottom) + 1rem);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(71, 85, 105, 0.4);
+  z-index: 30;
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.fab:active {
+  transform: scale(0.94);
+  box-shadow: 0 3px 10px rgba(71, 85, 105, 0.35);
+}
+
+/* ---------- date bar ---------- */
+
+.dateBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem;
+  margin-bottom: 0.75rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.dateArrow {
+  width: 44px;
+  height: 44px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  cursor: pointer;
-  font-weight: 500;
-  border-bottom: 2px solid transparent;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.navTab:hover {
+.dateArrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.dateArrow:not(:disabled):active {
+  background: var(--surface-alt);
+}
+
+.chevronLeft {
+  transform: rotate(180deg);
+}
+
+.dateBarCenter {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.dateBarTitle {
+  font-weight: 600;
+  font-size: 0.95rem;
   color: var(--text-primary);
 }
 
-.navTab.active {
-  color: #475569;
-  border-bottom-color: #475569;
+.dateBarBackToToday {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 6px;
 }
 
-/* Main Content */
-.main {
-  flex: 1;
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
+/* ---------- day-type toggle ---------- */
 
-/* Macro Progress */
-.macroProgress {
+.dayTypeToggle {
   display: flex;
-  gap: 1.5rem;
+  gap: 0;
+  background: var(--surface-alt);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 1rem;
+}
+
+.dayTypeButton {
+  flex: 1;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  gap: 0.4rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dayTypeButton.active {
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- macro progress ---------- */
+
+.macroProgress {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
   padding: 1rem;
   background: var(--surface);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1rem;
+  align-items: end;
 }
 
 .macroBar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
 }
 
 .macroBarChart {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 56px;
   position: relative;
-  background: #f7fafc;
-  border-radius: 3px;
+  background: var(--surface-alt);
+  border-radius: 6px;
   overflow: hidden;
-  border: 2px solid var(--border);
-}
-
-.macroBarBackground {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 0;
+  border: 1px solid var(--border);
 }
 
 .macroBarFill {
   position: absolute;
   bottom: 0;
-  width: 100%;
-  border-radius: 0;
-  transition: height 0.5s ease;
+  left: 0;
+  right: 0;
+  transition: height 0.35s ease;
+}
+
+.macroBarOver {
+  outline: 2px solid var(--danger);
+  outline-offset: -2px;
 }
 
 .proteinBar {
@@ -258,201 +338,232 @@ body {
 
 .macroLabel {
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
 }
 
 .macroValues {
-  text-align: center;
   font-size: 0.7rem;
   color: var(--text-secondary);
-  line-height: 1.2;
+  text-align: center;
+  line-height: 1.15;
 }
 
-/* Calories Display */
+/* ---------- calories tile ---------- */
+
 .caloriesDisplay {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  justify-content: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-height: 56px;
 }
 
-.caloriesValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  background: var(--primary-gradient);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.caloriesRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.15rem;
   line-height: 1;
 }
 
-.caloriesLabel {
-  font-weight: 600;
-  font-size: 0.8rem;
+.caloriesValue {
+  font-size: 1.4rem;
+  font-weight: 700;
   color: var(--text-primary);
-  text-align: center;
+  letter-spacing: -0.02em;
 }
 
-/* Food Grid */
-.foodSection {
-  margin-bottom: 3rem;
+.caloriesTarget {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.caloriesLabel {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ---------- empty day + copy-yesterday ---------- */
+
+.emptyDay {
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.emptyDay p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.copyYesterdayButton {
+  min-height: 44px;
+  padding: 0 1rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.copyYesterdayButton:active {
+  background: var(--border);
+}
+
+/* ---------- section headers ---------- */
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
 }
 
 .sectionTitle {
-  font-size: 1.5rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
   color: var(--text-primary);
+  margin: 0;
 }
 
-/* Search */
-.searchContainer {
-  margin-bottom: 2rem;
-  background: var(--surface);
-  border-radius: var(--border-radius);
-  padding: 2rem;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-}
-
-.searchInputWrapper {
-  position: relative;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.searchInput {
-  width: 100%;
-  padding: 1rem 1.25rem 1rem 3.5rem;
-  border: 2px solid var(--border);
-  border-radius: 25px;
-  font-size: 1rem;
-  background: var(--background);
-  transition: all 0.3s ease;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+.sectionCount {
+  font-size: 0.8rem;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
-.searchInput:focus {
-  outline: none;
-  border-color: #475569;
+/* ---------- today's foods rows ---------- */
+
+.todaysFoods {
   background: var(--surface);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05),
-    0 0 0 3px rgba(71, 85, 105, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  border-radius: var(--radius);
+  padding: 0.85rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1rem;
 }
 
-.searchInput::placeholder {
-  color: var(--text-secondary);
+.todayFood {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.todayFood:last-child {
+  border-bottom: none;
+}
+
+.todayFoodInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.todayFoodName {
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.25;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.todayFoodPortion {
   font-weight: 400;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 1.25rem;
-  top: 50%;
-  transform: translateY(-50%);
   color: var(--text-secondary);
-  font-size: 1.1rem;
-  pointer-events: none;
-  transition: color 0.3s ease;
+  font-size: 0.85rem;
 }
 
-.searchInput:focus + .searchIcon {
-  color: #475569;
+.todayFoodMult {
+  color: var(--primary);
+  font-weight: 600;
 }
 
-.clearSearch {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(71, 85, 105, 0.1);
+.todayFoodMacros {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.todayFoodTime {
+  color: var(--text-muted);
+}
+
+.todayFoodControls {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ---------- multiplier + remove ---------- */
+
+.multiplierControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface-alt);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.multiplierButton {
+  width: 40px;
+  height: 40px;
   border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 0.9rem;
-  padding: 0.5rem;
-  border-radius: 50%;
-  transition: all 0.2s ease;
+  background: transparent;
+  color: var(--text-primary);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  opacity: 0;
-  animation: fadeIn 0.2s ease forwards;
 }
 
-.clearSearch:hover {
-  background: rgba(71, 85, 105, 0.2);
-  color: var(--text-primary);
-  transform: translateY(-50%) scale(1.1);
+.multiplierButton:active {
+  background: var(--border);
 }
 
-.searchResults {
+.multiplierValue {
+  min-width: 40px;
   text-align: center;
-  margin-top: 1.5rem;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 20px;
-  color: #475569;
-  font-size: 0.9rem;
-  font-weight: 500;
-  display: inline-block;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.noResults {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 4rem 2rem;
-  background: var(--surface);
-  border-radius: var(--border-radius);
-  border: 2px dashed var(--border);
-  margin: 2rem 0;
-}
-
-.noResults p:first-child {
-  font-size: 1.2rem;
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
   font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
 }
 
-.noResultsHint {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  max-width: 400px;
-  margin: 0 auto;
-  line-height: 1.5;
+.removeButton {
+  margin-left: 1.25rem;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--danger);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.removeButton:active {
+  background: var(--danger-bg);
+}
+
+/* ---------- food tiles ---------- */
+
+.foodSection {
+  margin-bottom: 1.5rem;
 }
 
 .foodGrid {
@@ -461,1536 +572,1118 @@ body {
   gap: 0.5rem;
 }
 
+@media (min-width: 640px) {
+  .foodGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .foodTile {
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: var(--border-radius);
-  padding: 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
   position: relative;
-  box-shadow: var(--shadow);
-  z-index: 1;
-}
-
-.foodTile:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-hover);
-  border-color: #475569;
-  z-index: 2;
-}
-
-.foodTileHeader {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
   display: flex;
-  justify-content: space-between;
+  align-items: stretch;
+  overflow: visible;
+}
+
+.foodTile:active {
+  transform: translateY(1px);
+}
+
+.foodTileMain {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 60px;
+  border-radius: var(--radius);
+}
+
+.foodTileMain:active {
+  background: var(--surface-alt);
+}
+
+.foodTileTop {
+  display: flex;
   align-items: center;
-  margin-bottom: 0.25rem;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .foodName {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: var(--text-primary);
-  margin: 0;
-  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   flex: 1;
-  margin-right: 0.5rem;
+  min-width: 0;
 }
 
-.foodTileRight {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.foodActions {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.foodMenu {
-  background: none;
-  border: none;
-  cursor: pointer;
+.frequency {
+  background: var(--surface-alt);
   color: var(--text-secondary);
-  font-size: 1rem;
-  padding: 0.1rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.foodMenu:hover {
-  background: var(--border);
-  color: var(--text-primary);
-}
-
-.foodMenuDropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  box-shadow: var(--shadow-hover);
-  z-index: 1000;
-  min-width: 90px;
-}
-
-.foodMenuOption {
-  display: block;
-  width: 100%;
-  padding: 0.4rem 0.6rem;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  color: var(--text-primary);
-  font-size: 0.8rem;
-}
-
-.foodMenuOption:hover {
-  background: var(--background);
-}
-
-.foodMenuOption.delete {
-  color: #e53e3e;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .foodInfo {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
 }
 
 .portionSize {
   color: var(--text-secondary);
-  font-size: 0.75rem;
-  line-height: 1.2;
+  font-size: 0.78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   flex: 1;
   min-width: 0;
 }
 
 .macroInfo {
-  display: flex;
-  gap: 0.4rem;
+  display: inline-flex;
+  gap: 0.55rem;
   font-size: 0.75rem;
+  color: var(--text-primary);
   font-weight: 500;
   flex-shrink: 0;
 }
 
-.macroValue {
-  color: var(--text-primary);
-}
+/* ---------- food actions (⋯ menu) ---------- */
 
-.frequency {
-  background: var(--primary-gradient);
-  color: white;
-  padding: 0.1rem 0.3rem;
-  border-radius: 8px;
-  font-size: 0.65rem;
-  font-weight: 500;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-/* Today's Foods */
-.todaysFoods {
-  background: var(--surface);
-  border-radius: var(--border-radius);
-  padding: 1rem;
-  box-shadow: var(--shadow);
-  margin-bottom: 1rem;
-}
-
-.todayFood {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-  background: var(--background);
-}
-
-.todayFoodInfo {
-  flex: 1;
-  min-width: 0;
-}
-
-.todayFoodName {
-  font-weight: 600;
-  margin-bottom: 0.1rem;
-  font-size: 0.9rem;
-  line-height: 1.2;
-}
-
-.todayFoodMacros {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.2;
-}
-
-.todayFoodControls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.multiplierControls {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.multiplierButton {
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.multiplierButton:hover {
-  background: var(--background);
-  border-color: #475569;
-}
-
-.multiplierValue {
-  min-width: 32px;
-  text-align: center;
-  font-weight: 500;
-  font-size: 0.85rem;
-}
-
-.removeButton {
-  padding: 0.4rem;
-  background: #fed7d7;
-  color: #e53e3e;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.8rem;
-}
-
-.removeButton:hover {
-  background: #feb2b2;
-}
-
-/* Add Food Form */
-.addFoodForm {
-  background: var(--surface);
-  border-radius: var(--border-radius);
-  padding: 2rem;
-  box-shadow: var(--shadow);
-  margin-bottom: 2rem;
-  overflow: hidden;
-}
-
-.addFoodHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  padding: 1rem;
-  margin: -1rem;
-  transition: all 0.3s ease;
-  border-radius: var(--border-radius);
-  user-select: none;
-}
-
-.addFoodHeader:hover {
-  background: var(--background);
-  transform: translateY(-1px);
-}
-
-.toggleIcon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--primary-gradient);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.toggleIcon.expanded {
-  transform: rotate(180deg);
-}
-
-.addFoodHeader:hover .toggleIcon {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.addFoodHeader:hover .toggleIcon.expanded {
-  transform: scale(1.1) rotate(180deg);
-}
-
-.addFoodHeader .sectionTitle {
-  margin: 0;
-  transition: color 0.3s ease;
-}
-
-.addFoodHeader:hover .sectionTitle {
-  color: var(--text-primary);
-}
-
-.formGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateY(-10px);
-}
-
-.formGrid.expanded {
-  opacity: 1;
-  max-height: 1000px;
-  transform: translateY(0);
-  margin-top: 2rem;
-}
-
-/* Modal Form Grid (always visible) */
-.modalFormGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.formLabel {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.formInput {
-  padding: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.2s ease;
-  background: var(--surface);
-}
-
-.formInput:focus {
-  outline: none;
-  border-color: #475569;
-  box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
-}
-
-.submitButton {
-  padding: 0.75rem 2rem;
-  background: var(--primary-gradient);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  align-self: flex-start;
-}
-
-.submitButton:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-hover);
-}
-
-/* Settings */
-.settingsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-.settingsCard {
-  background: var(--surface);
-  border-radius: var(--border-radius);
-  padding: 2rem;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-}
-
-.settingsCardHeader {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.settingsIcon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  background: var(--primary-gradient);
-  color: white;
-}
-
-.settingsCardTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.settingsForm {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.macroInputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.macroInputRow {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.macroInputLabel {
-  min-width: 80px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.macroInput {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-
-.macroUnit {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  min-width: 20px;
-}
-
-.calorieInfo {
-  text-align: center;
-  padding: 1rem;
-  background: var(--background);
-  border-radius: 8px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-/* Meal Builder */
-.mealBuilderContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.mealForm {
-  background: var(--surface);
-  border-radius: var(--border-radius);
-  padding: 1rem;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-}
-
-.mealFormRow {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1rem;
-}
-
-.currentMeal {
-  background: var(--surface);
-  border-radius: var(--border-radius);
-  padding: 1rem;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-}
-
-.mealFood {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-  background: var(--background);
-}
-
-.mealFoodInfo {
-  flex: 1;
-  min-width: 0;
-}
-
-.mealFoodName {
-  font-weight: 600;
-  margin-bottom: 0.1rem;
-  font-size: 0.9rem;
-  line-height: 1.2;
-}
-
-.mealFoodMacros {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.2;
-}
-
-.mealFoodControls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.mealTotals {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border);
-}
-
-.mealTotalsTitle {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-}
-
-.mealTotalsMacros {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.createMealButton {
-  width: 100%;
-  padding: 0.75rem;
-  margin-top: 1rem;
-  background: var(--primary-gradient);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 1rem;
-}
-
-.createMealButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-hover);
-}
-
-.createMealButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.mealFoodTile {
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: var(--border-radius);
-  padding: 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.foodActions {
   position: relative;
-  box-shadow: var(--shadow);
-  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding-right: 0.35rem;
 }
 
-.mealFoodTile:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-hover);
-  border-color: #4ade80;
-  z-index: 2;
+.foodMenu {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foodMenu:active {
+  background: var(--surface-alt);
+}
+
+.foodMenuDropdown {
+  position: absolute;
+  right: 0.35rem;
+  top: calc(100% - 4px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 20;
+  min-width: 140px;
+  overflow: hidden;
+}
+
+.foodMenuOption {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  min-height: 44px;
+}
+
+.foodMenuOption:active {
+  background: var(--surface-alt);
+}
+
+.foodMenuDelete {
+  color: var(--danger);
+  border-top: 1px solid var(--border);
 }
 
 .addIcon {
-  background: #4ade80;
-  color: white;
-  padding: 0.1rem 0.3rem;
-  border-radius: 50%;
-  font-size: 0.7rem;
-  font-weight: bold;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-/* Login Screen */
-.loginContainer {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
-}
-
-.loginCard {
-  background: white;
-  border-radius: 16px;
-  padding: 3rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
-}
-
-.loginTitle {
-  font-size: 2rem;
+  align-self: center;
+  margin-right: 0.5rem;
+  color: var(--success);
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.loginSubtitle {
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
   font-size: 1.1rem;
 }
 
-.loginButton {
+/* ---------- search ---------- */
+
+.searchContainer {
+  margin-bottom: 0.75rem;
+}
+
+.searchInputWrapper {
+  position: relative;
+}
+
+.searchInput {
   width: 100%;
-  padding: 0.75rem 1.5rem;
-  background: var(--primary-gradient);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.loginButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.loginButton:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.googleIcon {
-  font-size: 1.2rem;
-}
-
-.loginFooter {
-  margin-top: 2rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-/* Loading Screen */
-.loadingContainer {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--background);
+  min-height: 44px;
+  padding: 0.5rem 2.5rem 0.5rem 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 16px; /* prevent iOS zoom */
+  background: var(--surface);
   color: var(--text-primary);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.loadingSpinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--border);
-  border-top: 4px solid var(--primary-gradient);
+.searchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.15);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  display: flex;
+}
+
+.clearSearch {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--surface-alt);
+  color: var(--text-secondary);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.searchResults {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0.5rem 0.25rem;
 }
 
-/* Modal */
-.modalOverlay {
+/* Search wrapper: renders inline in normal flow when closed; when open,
+ * lifts to a full-viewport fixed overlay with keyboard-aware padding on
+ * the scroll container. The <input> is the same DOM node in both modes,
+ * so the tap that focuses it is a real user gesture — iOS pops the
+ * keyboard synchronously with no programmatic-focus workaround. */
+
+.searchWrapper {
+  position: relative;
+}
+
+.searchBar {
+  margin-bottom: 0.75rem;
+}
+
+.searchWrapperOpen {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--background);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  animation: search-overlay-in 0.15s ease;
+}
+
+@keyframes search-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.searchWrapperOpen .searchBar {
+  padding: calc(var(--safe-top) + 0.5rem) 0.5rem 0.5rem 0.75rem;
+  margin-bottom: 0;
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.searchWrapperOpen .searchInputWrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.searchOverlayCancel {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+}
+
+.searchOverlayCancel:active {
+  background: var(--surface-alt);
+}
+
+.searchOverlayCount {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.searchOverlayResults {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.75rem 1rem;
+  /* padding-bottom set inline from useKeyboardOffset so the last tile
+   * scrolls fully into view above the virtual keyboard */
+}
+
+/* "Add [term] as new food" — sits at the top of the search results so the
+ * fastest path from a failed search is a single tap that pre-fills the
+ * new-food form with what the user was searching for. */
+.addNewRow {
+  width: 100%;
+  min-height: 56px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.addNewRow:active {
+  background: var(--surface-alt);
+  border-color: var(--primary);
+}
+
+.addNewRowIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  flex-shrink: 0;
 }
 
-.modal {
+.addNewRowLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.noResults {
+  padding: 2rem 1rem;
+  text-align: center;
   background: var(--surface);
-  border-radius: var(--border-radius);
-  padding: 2rem;
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
 }
 
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.modalTitle {
-  font-size: 1.5rem;
+.noResults p:first-child {
   font-weight: 600;
-  margin: 0;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: color 0.2s ease;
-}
-
-.closeButton:hover {
   color: var(--text-primary);
+  margin-bottom: 0.5rem;
 }
 
-/* Responsive */
-@media (min-width: 768px) {
-  .main {
-    padding: 1.5rem;
-  }
-
-  .macroProgress {
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .searchContainer {
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .todaysFoods {
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .foodSection {
-    margin-bottom: 2rem;
-  }
+.noResultsHint {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
-@media (max-width: 767px) {
-  .header {
-    padding: 0.75rem;
-  }
-
-  .headerContent {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .headerRight {
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .dayTypeToggle {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .addFoodButton {
-    width: 100%;
-    justify-content: center;
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
-  }
-
-  .userInfo {
-    width: 100%;
-    justify-content: center;
-    gap: 0.75rem;
-  }
-
-  .logoutButton {
-    flex: 1;
-    max-width: 120px;
-  }
-
-  .main {
-    padding: 0.75rem;
-  }
-
-  .macroProgress {
-    gap: 1rem;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .macroBarChart {
-    width: 45px;
-    height: 45px;
-  }
-
-  .macroLabel {
-    font-size: 0.75rem;
-  }
-
-  .macroValues {
-    font-size: 0.65rem;
-  }
-
-  .caloriesValue {
-    font-size: 1.25rem;
-  }
-
-  .caloriesLabel {
-    font-size: 0.75rem;
-  }
-
-  .searchContainer {
-    padding: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .searchInput {
-    padding: 0.6rem 0.75rem 0.6rem 2.25rem;
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-
-  .searchIcon {
-    left: 0.75rem;
-    font-size: 0.9rem;
-  }
-
-  .sectionTitle {
-    font-size: 1.1rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .todaysFoods {
-    padding: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .todayFood {
-    padding: 0.4rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .todayFoodName {
-    font-size: 0.85rem;
-  }
-
-  .todayFoodMacros {
-    font-size: 0.75rem;
-  }
-
-  .multiplierButton {
-    width: 26px;
-    height: 26px;
-    font-size: 0.8rem;
-  }
-
-  .multiplierValue {
-    min-width: 28px;
-    font-size: 0.8rem;
-  }
-
-  .removeButton {
-    padding: 0.3rem;
-    font-size: 0.75rem;
-  }
-
-  .foodTile {
-    padding: 0.4rem;
-  }
-
-  .mealFoodTile {
-    padding: 0.4rem;
-  }
-
-  .foodName {
-    font-size: 0.85rem;
-  }
-
-  .portionSize {
-    font-size: 0.7rem;
-  }
-
-  .macroInfo {
-    font-size: 0.7rem;
-    gap: 0.3rem;
-  }
-
-  .frequency {
-    top: 0.2rem;
-    right: 0.2rem;
-    padding: 0.08rem 0.2rem;
-    font-size: 0.6rem;
-  }
-
-  .mealFormRow {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .mealTotalsMacros {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .mealBuilderContainer {
-    gap: 1rem;
-  }
-
-  .currentMeal {
-    padding: 0.75rem;
-  }
-
-  .mealFood {
-    padding: 0.4rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .mealFoodName {
-    font-size: 0.85rem;
-  }
-
-  .mealFoodMacros {
-    font-size: 0.75rem;
-  }
-
-  .mealTotals {
-    padding: 0.75rem;
-  }
-
-  .mealTotalsTitle {
-    font-size: 0.85rem;
-  }
-
-  .settingsGrid {
-    grid-template-columns: 1fr;
-  }
-}
+/* ---------- history ---------- */
 
 .historyContainer {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-.noHistory {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: var(--surface);
-  border-radius: var(--border-radius);
-  border: 2px dashed var(--border);
-  margin: 2rem 0;
-}
-
-.noHistory p:first-child {
-  font-size: 1.2rem;
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-}
-
-.noHistoryHint {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  max-width: 400px;
-  margin: 0 auto;
-  line-height: 1.5;
+  gap: 0.75rem;
 }
 
 .historyList {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
 }
 
 .historyEntry {
   background: var(--surface);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
   border: 1px solid var(--border);
-  transition: all 0.3s ease;
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
-.historyEntry.recentEntry {
-  border-left: 4px solid #4ade80;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
-}
-
-.historyEntry:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hover);
+.recentEntry {
+  border-left: 3px solid var(--carbs-color);
 }
 
 .historyHeader {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .historyDate h3 {
-  margin: 0 0 0.5rem 0;
-  color: var(--text-primary);
-  font-size: 1.1rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.98rem;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .dayTypeBadge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  background: var(--primary-gradient);
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 2px 8px;
+  background: var(--surface-alt);
   border-radius: 12px;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 500;
+  color: var(--text-secondary);
 }
 
-.historyMacros {
+.historyCalories {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.historyCalValue {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.historyCalLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .historyMacroProgress {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.75rem;
   background: var(--background);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+}
+
+.historyMacroProgress .macroBar {
+  align-items: center;
 }
 
 .historyFoods {
-  margin-bottom: 1rem;
+  margin-top: 0.5rem;
 }
 
-.historyFoodsTitle {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
+.historyFoodsSummary {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: 0.35rem 0;
+  cursor: pointer;
+  font-weight: 500;
+  list-style: none;
+}
+
+.historyFoodsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.historyFoodsSummary::before {
+  content: "▸ ";
+  color: var(--text-muted);
+}
+
+details[open] > .historyFoodsSummary::before {
+  content: "▾ ";
 }
 
 .historyFoodsList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
 }
 
 .historyFoodItem {
-  padding: 0.5rem;
-  background: var(--background);
-  border-radius: 6px;
-  border: 1px solid var(--border);
-}
-
-.historyFoodInfo {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--background);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
 }
 
 .historyFoodName {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.historyFoodMacros {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+.noHistory {
+  padding: 3rem 1rem;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+}
+
+.noHistory p:first-child {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.noHistoryHint {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.loadMoreButton {
+  align-self: center;
+  min-height: 44px;
+  padding: 0 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin: 0.5rem auto 0;
+}
+
+.loadMoreButton:active {
+  background: var(--surface-alt);
+}
+
+.loadMoreButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- meal builder ---------- */
+
+.mealBuilderContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mealForm {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 0.85rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.currentMeal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 0.85rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.mealTotals {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: var(--surface-alt);
+  border-radius: var(--radius-sm);
+}
+
+.mealTotalsTitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+}
+
+.mealTotalsMacros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.createMealButton {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 0.75rem;
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.createMealButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- settings ---------- */
+
+.settingsForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .settingsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.settingsCard {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.settingsCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.settingsIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settingsCardTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.macroInputRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.macroInputLabel {
+  min-width: 70px;
   font-weight: 500;
   color: var(--text-primary);
   font-size: 0.9rem;
 }
 
-.historyFoodMacros {
-  font-size: 0.8rem;
+.macroInput {
+  flex: 1;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+.macroInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.15);
+}
+
+.macroUnit {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  min-width: 12px;
+}
+
+.calorieInfo {
+  text-align: center;
+  padding: 0.5rem;
+  background: var(--surface-alt);
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-.historySummary {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-}
-
-.summaryStats {
-  display: flex;
-  gap: 2rem;
-  justify-content: center;
-}
-
-.summaryState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.summaryLabel {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
-.summaryValue {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.targetMet {
-  color: #16a34a;
-}
-
-.targetMissed {
-  color: #dc2626;
-}
-
-/* Mobile Responsive Styles for History */
-@media (max-width: 767px) {
-  .historyContainer {
-    gap: 1rem;
-  }
-
-  .historyEntry {
-    padding: 1rem;
-  }
-
-  .historyHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .historyDate h3 {
-    font-size: 1rem;
-  }
-
-  .historyMacroProgress {
-    gap: 0.75rem;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .historyFoodInfo {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
-  .summaryStats {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .summaryState {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-}
-
-/* Settings Submit Section */
 .settingsSubmitSection {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: var(--surface);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
   display: flex;
-  gap: 1rem;
-  align-items: center;
   justify-content: center;
+  padding-top: 0.5rem;
 }
 
 .settingsSubmitButton {
-  padding: 0.75rem 2rem;
+  min-height: 48px;
+  padding: 0 2rem;
   background: var(--border);
   color: var(--text-secondary);
-  border: 2px solid var(--border);
-  border-radius: var(--border-radius);
+  border: none;
+  border-radius: var(--radius);
   font-weight: 600;
+  font-size: 0.95rem;
+  min-width: 180px;
   cursor: not-allowed;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 140px;
-  justify-content: center;
+  transition: transform 0.12s ease;
 }
 
 .settingsSubmitButton.hasChanges {
   background: var(--primary-gradient);
   color: white;
   cursor: pointer;
-  border-color: transparent;
 }
 
-.settingsSubmitButton.hasChanges:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-hover);
+.settingsSubmitButton.hasChanges:active {
+  transform: scale(0.98);
 }
 
 .settingsSubmitButton:disabled {
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
-.submitButtonLoading {
+/* ---------- forms (sheet & modal) ---------- */
+
+.modalFormGrid {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5rem;
 }
 
-.submitButtonSuccess {
-  color: #16a34a;
-  font-weight: 600;
-}
-
-.settingsResetButton {
-  padding: 0.75rem 1.5rem;
-  background: transparent;
-  color: var(--text-secondary);
-  border: 2px solid var(--border);
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-}
-
-.settingsResetButton:hover {
-  background: var(--background);
-  color: var(--text-primary);
-  border-color: var(--text-secondary);
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
+@media (max-width: 480px) {
+  .formRow {
+    grid-template-columns: 1fr;
   }
 }
 
-/* Mobile Responsive */
-@media (max-width: 767px) {
-  .settingsSubmitSection {
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem;
-  }
-
-  .settingsSubmitButton {
-    width: 100%;
-    min-width: auto;
-  }
-
-  .settingsResetButton {
-    width: 100%;
-  }
-}
-
-/* Enhanced Calories Display Styles */
-/* Add these styles to your App.module.css file */
-
-.caloriesDisplay {
+.formGroup {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.125rem;
+  gap: 0.35rem;
+}
+
+.formLabel {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.formInput {
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.15);
+}
+
+.submitButton {
+  min-height: 48px;
+  padding: 0 1.5rem;
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.95rem;
+  align-self: stretch;
+}
+
+.submitButton:active {
+  transform: scale(0.98);
+}
+
+/* ---------- sheet / modal ---------- */
+
+.sheetOverlay,
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
   justify-content: center;
-  position: relative;
+  animation: overlay-in 0.15s ease;
 }
 
-.caloriesValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  background: var(--primary-gradient);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  line-height: 1;
-  display: inline;
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.caloriesTarget {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  line-height: 1;
-  display: inline;
-  margin-left: 0.25rem;
-}
-
-.caloriesLabel {
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: var(--text-primary);
-  text-align: center;
-  margin-top: 0.125rem;
-}
-
-/* Enhanced Today's Foods Styles */
-.todayFoodInfo {
-  flex: 1;
-  min-width: 0;
+.sheet {
+  background: var(--surface);
+  width: 100%;
+  max-height: 92vh;
+  max-height: 92dvh;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 1rem 1rem calc(1rem + var(--safe-bottom));
+  box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.2);
+  overflow-y: auto;
+  animation: sheet-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
-.todayFoodName {
-  font-weight: 600;
-  margin-bottom: 0;
-  font-size: 0.9rem;
-  line-height: 1.2;
-  color: var(--text-primary);
-}
-
-.todayFoodPortion {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.2;
-  font-style: italic;
-  margin-bottom: 0.1rem;
-}
-
-.todayFoodMacros {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.2;
-  font-weight: 500;
-}
-
-/* Mobile Responsive Adjustments */
-@media (max-width: 767px) {
-  .caloriesValue {
-    font-size: 1.25rem;
+@keyframes sheet-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0.5;
   }
-
-  .caloriesTarget {
-    font-size: 0.9rem;
-  }
-
-  .caloriesLabel {
-    font-size: 0.75rem;
-  }
-
-  .todayFoodPortion {
-    font-size: 0.75rem;
-  }
-
-  .todayFoodMacros {
-    font-size: 0.75rem;
-  }
-
-  .todayFoodName {
-    font-size: 0.85rem;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-/* Progress indicator styles for when calories are close to target */
-.caloriesDisplay.nearTarget {
-  background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%);
-  border-radius: 8px;
-  padding: 0.5rem;
-  border: 1px solid #86efac;
-}
-
-.caloriesDisplay.overTarget {
-  background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
-  border-radius: 8px;
-  padding: 0.5rem;
-  border: 1px solid #fca5a5;
-}
-
-/* Calories Progress Bar */
-.caloriesProgress {
-  width: 60px;
-  height: 4px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-top: 0.25rem;
-}
-
-.caloriesProgressBar {
-  height: 100%;
-  background: var(--primary-gradient);
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-
-/* Header Attribution Styles */
-/* Add these styles to your App.module.css file */
-
-.headerTitle {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
-}
-
-.attribution {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  font-weight: 400;
-  transition: all 0.3s ease;
-  line-height: 1;
-}
-
-.attribution:hover {
-  color: rgba(255, 255, 255, 0.95);
-  text-decoration: underline;
-  transform: translateY(-1px);
-}
-
-.attribution:active {
-  transform: translateY(0);
-}
-
-/* Mobile responsive adjustments */
-@media (max-width: 767px) {
-  .headerTitle {
+@media (min-width: 640px) {
+  .sheetOverlay {
     align-items: center;
-    text-align: center;
   }
-
-  .attribution {
-    font-size: 0.65rem;
+  .sheet {
+    max-width: 520px;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
   }
 }
 
-/* Login Page Attribution Styles */
-/* Add these styles to your App.module.css file */
-
-.loginHeader {
+.sheetHeader {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
-.loginTitle {
-  font-size: 2rem;
-  font-weight: 700;
+.sheetTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0;
 }
 
-.loginAttribution {
-  font-size: 0.8rem;
+.sheetClose {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
   color: var(--text-secondary);
-  text-decoration: none;
-  font-weight: 400;
-  transition: all 0.3s ease;
-  line-height: 1;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.loginAttribution:hover {
+.sheetClose:active {
+  background: var(--surface-alt);
+}
+
+.sheetBody {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- confirm dialog ---------- */
+
+.confirmDialog {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  max-width: 380px;
+  width: calc(100% - 2rem);
+  margin: auto;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-self: center;
+}
+
+.confirmTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
   color: var(--text-primary);
-  text-decoration: underline;
-  transform: translateY(-1px);
+  margin: 0;
 }
 
-.loginAttribution:active {
-  transform: translateY(0);
-}
-
-.loginSubtitle {
+.confirmMessage {
   color: var(--text-secondary);
-  margin-bottom: 2rem;
-  font-size: 1.1rem;
-  margin-top: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
 }
 
-/* Mobile responsive adjustments for login */
-@media (max-width: 767px) {
-  .loginTitle {
-    font-size: 1.75rem;
-  }
+.confirmActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
 
-  .loginAttribution {
-    font-size: 0.75rem;
-  }
+.confirmCancel,
+.confirmPrimary,
+.confirmDestructive {
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
 
-  .loginSubtitle {
-    font-size: 1rem;
+.confirmCancel {
+  background: var(--surface-alt);
+  color: var(--text-primary);
+}
+
+.confirmPrimary {
+  background: var(--primary);
+  color: white;
+}
+
+.confirmDestructive {
+  background: var(--danger);
+  color: white;
+}
+
+/* ---------- toasts ---------- */
+
+.toastStack {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: calc(var(--nav-height) + var(--safe-bottom) + 1rem);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+  align-items: center;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.5rem 0.75rem 1rem;
+  background: var(--text-primary);
+  color: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  max-width: 480px;
+  width: 100%;
+  animation: toast-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
+  font-size: 0.9rem;
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.toastSuccess {
+  background: #0f172a;
+}
+
+.toastError {
+  background: var(--danger);
+}
+
+.toastInfo {
+  background: #334155;
+}
+
+.toastMessage {
+  flex: 1;
+  min-width: 0;
+}
+
+.toastAction {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.85rem;
+  min-height: 36px;
+  flex-shrink: 0;
+}
+
+.toastAction:active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.toastDismiss {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: none;
+  font-size: 1.1rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toastDismiss:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- skeleton ---------- */
+
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--surface-alt) 0%,
+    var(--border) 50%,
+    var(--surface-alt) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeletonBar {
+  width: 48px;
+  height: 56px;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s !important;
+    transition-duration: 0.001s !important;
   }
 }

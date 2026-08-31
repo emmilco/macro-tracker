@@ -24,6 +24,19 @@ export interface FoodEntry {
   food_protein: number;
   food_carbs: number;
   food_fat: number;
+  created_at?: string;
+}
+
+export interface HistoryBatch {
+  entries: (DailyEntry & { food_entries: FoodEntry[] })[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface CopyDayResult {
+  entry: DailyEntry;
+  food_entries: FoodEntry[];
 }
 
 export interface UserSettings {

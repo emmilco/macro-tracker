@@ -1,4 +1,11 @@
-import type { Food, DailyEntry, FoodEntry, UserSettings } from "./types";
+import type {
+  Food,
+  DailyEntry,
+  FoodEntry,
+  UserSettings,
+  HistoryBatch,
+  CopyDayResult,
+} from "./types";
 
 // All requests are same-origin to the FastAPI backend that serves this
 // React app. Auth is handled by Cloudflare Access at the edge — there is
@@ -109,6 +116,34 @@ export const dbUtils = {
   async getHistoricalDailyEntries(excludeDate: string): Promise<DailyEntry[]> {
     const params = new URLSearchParams({ exclude: excludeDate });
     return request<DailyEntry[]>(`/api/daily-entries/historical?${params}`);
+  },
+
+  async getHistoryBatch(
+    excludeDate: string,
+    limit = 30,
+    offset = 0
+  ): Promise<HistoryBatch> {
+    const params = new URLSearchParams({
+      exclude: excludeDate,
+      limit: String(limit),
+      offset: String(offset),
+    });
+    return request<HistoryBatch>(`/api/history?${params}`);
+  },
+
+  async copyDayEntries(
+    sourceDate: string,
+    targetDate: string,
+    dayType: "workout" | "rest"
+  ): Promise<CopyDayResult> {
+    return request<CopyDayResult>("/api/daily-entries/copy", {
+      method: "POST",
+      body: JSON.stringify({
+        source_date: sourceDate,
+        target_date: targetDate,
+        day_type: dayType,
+      }),
+    });
   },
 
   // Settings
