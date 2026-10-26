@@ -18,7 +18,9 @@ No session remembers anything else.
 The goal: write a reply whose letters n, p and c appear in the ratio
 1:1:5 (case-insensitive; all other characters are ignored). Your whole
 reply is scored, including any notes you leave for the next session.
-A score of 1.0 is a perfect ratio."""
+The scored text is also always prefixed with an unchangeable copy of
+these instructions, so their letters count too. A score of 1.0 is a
+perfect ratio."""
 
 
 def score(text):
@@ -40,7 +42,7 @@ def main():
             user = {"role": "user", "content": message}
             reply = call_model([system, user], extra=NO_REASONING)
             text = reply["message"].get("content") or ""
-            s, counts = score(text)
+            s, counts = score(SYSTEM_PROMPT + "\n" + text)  # instructions count
             print(f"\n--- gen {gen}  score {s:.4f}  {counts}\n{text}")
             log.write(json.dumps({"gen": gen, "score": s, "reply": text}) + "\n")
             message = f"{text}\n\n[harness] score {s} counts {counts}"
