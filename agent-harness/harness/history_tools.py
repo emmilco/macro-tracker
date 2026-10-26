@@ -47,6 +47,19 @@ def replace_messages(messages, start, end, content):
     return f"Replaced messages {start}-{end} with one message."
 
 
+def rewind(messages, index, content):
+    """Rewrite one of the agent's own messages and erase everything after it,
+    user messages included. The running tool call is erased too, so the
+    loop must notice (see agent.py) and continue from the rewound point."""
+    if not 1 <= index < len(messages) or messages[index]["role"] != "assistant":
+        return f"Error: message {index} is not one of your messages."
+    # The rewritten message has no tool_calls, and nothing follows it,
+    # so no tool call can be left without its result.
+    messages[index] = {"role": "assistant", "content": content}
+    del messages[index + 1:]
+    return f"Rewound to message {index}."
+
+
 def _schema(name, description, properties, required):
     return {"type": "function", "function": {
         "name": name, "description": description,
@@ -65,10 +78,14 @@ SCHEMAS = [
             "with a single message you write, e.g. a summary of them.",
             {"start": _INT, "end": _INT, "content": _TEXT},
             ["start", "end", "content"]),
+    _schema("rewind", "Go back in time: rewrite one of your own earlier "
+            "messages and erase everything after it, then continue from "
+            "there. Only the rewritten message survives the trip.",
+            {"index": _INT, "content": _TEXT}, ["index", "content"]),
 ]
 
 FUNCTIONS = {"view_history": view_history, "edit_message": edit_message,
-             "replace_messages": replace_messages}
+             "replace_messages": replace_messages, "rewind": rewind}
 
 
 def run_history_tool(name, arguments_json, messages):
