@@ -38,7 +38,8 @@ scoring and before being passed on.
 
 Rules: your reply must consist only of complete sentences, each starting
 with a capital letter and ending with . ! or ?, and every word must be an
-English dictionary word (single letters other than "a" and "I" don't count).
+English dictionary word (single letters other than "a" and "I" don't count)
+or a number written in digits, such as 101, 3.5 or 1:1:5.
 A reply that breaks these rules scores 0, and the harness lists the problems.
 
 The chain has {GENERATIONS} sessions in all, and the harness tells each
@@ -70,19 +71,25 @@ def load_words():
     return {w for w in words if len(w) > 1} | {"a", "i"}
 
 
+# A sentence ends at . ! or ?, but not at a decimal point (as in 3.5).
+SENTENCE = r"(?:[^.!?]|\.(?=\d))+[.!?]"
+# Numbers in digits: 101, 3.5, 1,024, 1:1:5, 50%.
+NUMBER = r"\d+(?:[.,:/]\d+)*%?"
+
+
 def problems(text, words):
     """The ways the reply breaks the rules (empty if none). This checks the
     form of sentences, not their grammar: that can't be checked cheaply."""
     found = []
-    sentences = re.findall(r"[^.!?]+[.!?]", text)
-    if not sentences or re.sub(r"[^.!?]+[.!?]", "", text).strip():
+    sentences = re.findall(SENTENCE, text)
+    if not sentences or re.sub(SENTENCE, "", text).strip():
         found.append("text outside complete sentences")
     for s in sentences:
-        if not s.strip()[0].isupper():
+        if not (s.strip()[0].isupper() or s.strip()[0].isdigit()):
             found.append(f"sentence starts without a capital: {s.strip()[:30]!r}")
     for token in text.split():
         word = token.strip(".,;:!?\"'()")
-        if word and word.lower() not in words:
+        if word and word.lower() not in words and not re.fullmatch(NUMBER, word):
             found.append(f"not a dictionary word: {word!r}")
     return found[:5]  # a few examples are enough feedback
 
