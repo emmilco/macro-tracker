@@ -10,12 +10,18 @@ def run_turn(messages, user_text):
     messages.append({"role": "user", "content": user_text})
 
     for _ in range(MAX_STEPS):
-        reply = call_model(messages, SCHEMAS)
+        choice = call_model(messages, SCHEMAS)
+        reply = choice["message"]
         messages.append(reply)  # the model's own reply becomes part of history
 
         tool_calls = reply.get("tool_calls")
         if not tool_calls:
-            return reply.get("content") or ""  # plain text means the turn is done
+            text = reply.get("content") or ""  # no tools: the turn is done
+            # "stop" means the model finished on purpose. Anything else
+            # (e.g. "length": cut off at the token limit) gets flagged.
+            if choice.get("finish_reason") != "stop":
+                text += f"\n[warning: reply ended early: {choice.get('finish_reason')}]"
+            return text
 
         # The model may ask for several tools at once; run each one and
         # answer it with a "tool" message tied to the request by its id.

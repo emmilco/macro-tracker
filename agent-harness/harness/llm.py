@@ -25,6 +25,9 @@ def call_model(messages, tools):
     )
     with urllib.request.urlopen(request, timeout=120) as response:
         data = json.load(response)
-    # The reply is a dict like {"role": "assistant", "content": "...",
-    # "tool_calls": [...]}. tool_calls is present only if the model wants tools.
-    return data["choices"][0]["message"]
+    # We return the whole "choice", which looks like:
+    #   {"message": {"role": "assistant", "content": "...", "tool_calls": [...]},
+    #    "finish_reason": "stop" | "tool_calls" | "length" | ...}
+    # tool_calls is present only if the model wants tools; finish_reason
+    # says why the model stopped writing.
+    return data["choices"][0]

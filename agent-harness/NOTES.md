@@ -9,10 +9,9 @@ Optional: `DEEPSEEK_MODEL` (default `deepseek-flash`).
 
 ## Step 3 candidates (modifications)
 
-- **Turn termination:** check `finish_reason` in `agent.py`. Today any
-  reply without `tool_calls` counts as done, so a reply cut off at the
-  token limit (`"length"`) is returned as if complete. Alternative: an
-  explicit `finish` tool that ends the turn.
+- ~~**Turn termination:** check `finish_reason` in `agent.py`.~~ Done: a
+  final reply whose `finish_reason` isn't `"stop"` gets a warning appended.
+  Still open: an explicit `finish` tool that ends the turn.
 - **Thinking mode:** check whether `deepseek-flash` defaults to thinking
   mode, and whether `reasoning_content` must or must not be sent back
   during tool calls (unverified; the docs were unreachable from the sandbox).
