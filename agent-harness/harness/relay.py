@@ -41,7 +41,7 @@ def main():
             reply = call_model([system, user], extra=NO_REASONING)
             text = reply["message"].get("content") or ""
             s, counts = score(text)
-            print(f"gen {gen:3}  score {s:.4f}  {counts}")
+            print(f"\n--- gen {gen}  score {s:.4f}  {counts}\n{text}")
             log.write(json.dumps({"gen": gen, "score": s, "reply": text}) + "\n")
             message = f"{text}\n\n[harness] score {s} counts {counts}"
 
