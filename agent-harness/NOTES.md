@@ -20,3 +20,12 @@ Optional: `DEEPSEEK_MODEL` (default `deepseek-flash`).
 - Write/shell tools, plus a permission prompt before running them.
 - Retries and error handling around the HTTP call in `llm.py`.
 - Context growth: history is re-sent every call and only ever grows.
+
+## History tools (`harness/history_tools.py`)
+
+The agent can `view_history`, `edit_message` and `replace_messages` on its
+own conversation. The system prompt and the in-flight tool call are
+protected, and tool calls are never split from their results. After a
+`replace_messages`, further history calls in the same reply are refused
+(their indexes are stale). Untested against DeepSeek: a replacement is an
+`assistant` message, which can put two assistant messages in a row.
