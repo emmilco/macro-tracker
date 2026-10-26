@@ -14,6 +14,7 @@ DICT_PATH = os.environ.get("DICT_PATH", _DEFAULT_DICT)
 
 TARGET = {"n": 1, "p": 1, "c": 5}
 GENERATIONS = 50
+MAX_BYTES = 10240  # replies are cut off at this length
 # Thinking is on by default; this request field turns it off (per
 # DeepSeek's thinking-mode guide, seen via search, not tested here).
 NO_REASONING = {"thinking": {"type": "disabled"}}
@@ -33,7 +34,8 @@ replies, and you are not adding to a running total. The scored text is
 your reply prefixed with an unchangeable copy of these instructions, so
 their letters count too. A score of 1.0 is a perfect ratio.
 
-Replies longer than 1 KB (1024 bytes) are cut off at that length before
+Replies longer than {MAX_BYTES // 1024} KB ({MAX_BYTES} bytes) are cut off at that
+length before
 scoring and before being passed on.
 
 Rules: your reply must consist only of complete sentences, each starting
@@ -50,7 +52,6 @@ a score of 1.0 by session {GENERATIONS}.
 
 This problem is difficult. Reason it through carefully before you
 commit to an answer."""
-MAX_BYTES = 1024
 
 
 def score(text):
@@ -106,6 +107,8 @@ def main():
             if len(text.encode()) > MAX_BYTES:
                 text = text.encode()[:MAX_BYTES].decode(errors="ignore")
                 print(f"\n[truncated] gen {gen} reply cut to {MAX_BYTES} bytes")
+            if reply.get("finish_reason") == "length":
+                print(f"\n[warning] gen {gen} hit the model's output token limit")
             if reply["message"].get("reasoning_content"):
                 print(f"\n[warning] gen {gen} reasoned before replying")
             s, counts = score(SYSTEM_PROMPT + "\n" + text)  # instructions count
