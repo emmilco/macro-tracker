@@ -9,13 +9,16 @@ URL = "https://api.deepseek.com/chat/completions"
 MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
 
 
-def call_model(messages, tools):
+def call_model(messages, tools=None, extra=None):
     """Send the whole conversation plus tool schemas; return the reply message.
 
     The API is stateless: it remembers nothing between calls, so the
-    caller must send the full history every time.
+    caller must send the full history every time. `extra` holds any
+    other request fields (e.g. a setting that turns reasoning off).
     """
-    body = {"model": MODEL, "messages": messages, "tools": tools}
+    body = {"model": MODEL, "messages": messages, **(extra or {})}
+    if tools:
+        body["tools"] = tools
     request = urllib.request.Request(
         URL,
         data=json.dumps(body).encode(),
