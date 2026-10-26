@@ -42,6 +42,8 @@ def main():
             user = {"role": "user", "content": message}
             reply = call_model([system, user], extra=NO_REASONING)
             text = reply["message"].get("content") or ""
+            if reply["message"].get("reasoning_content"):
+                print(f"\n[warning] gen {gen} reasoned before replying")
             s, counts = score(SYSTEM_PROMPT + "\n" + text)  # instructions count
             print(f"\n--- gen {gen}  score {s:.4f}  {counts}\n{text}")
             log.write(json.dumps({"gen": gen, "score": s, "reply": text}) + "\n")
