@@ -39,8 +39,9 @@ length before scoring and before being passed on.
 
 Rules: your reply must consist only of complete sentences, each starting
 with a capital letter and ending with . ! or ?, and every word must be an
-English dictionary word (single letters other than "a" and "I" don't count)
-or a number written in digits, such as 101, 3.5 or 1:1:5.
+English dictionary word, a number written in digits (such as 101, 3.5 or
+1:1:5), or a single letter standing alone. A letter standing alone, like
+the n in "the letter n", is allowed but is never counted in the score.
 A reply that breaks these rules scores 0, and the harness lists the problems.
 
 The chain has {GENERATIONS} sessions in all, and the harness tells each
@@ -73,6 +74,8 @@ def load_words():
 
 # A sentence ends at . ! or ?, but not at a decimal point (as in 3.5).
 SENTENCE = r"(?:[^.!?]|\.(?=\d))+[.!?]"
+# A letter standing alone, as in "the letter n".
+SOLO_LETTER = r"\b[A-Za-z]\b"
 # Numbers in digits: 101, 3.5, 1,024, 1:1:5, 50%.
 NUMBER = r"\d+(?:[.,:/]\d+)*%?"
 
@@ -89,7 +92,8 @@ def problems(text, words):
             found.append(f"sentence starts without a capital: {s.strip()[:30]!r}")
     for token in text.split():
         word = token.strip(".,;:!?\"'()")
-        if word and word.lower() not in words and not re.fullmatch(NUMBER, word):
+        if (word and word.lower() not in words and not re.fullmatch(NUMBER, word)
+                and not (len(word) == 1 and word.isalpha())):
             found.append(f"not a dictionary word: {word!r}")
     return found[:5]  # a few examples are enough feedback
 
@@ -110,7 +114,8 @@ def main():
                 print(f"\n[warning] gen {gen} hit the model's output token limit")
             if reply["message"].get("reasoning_content"):
                 print(f"\n[warning] gen {gen} reasoned before replying")
-            s, counts = score(SYSTEM_PROMPT + "\n" + text)  # instructions count
+            # The instructions count too; letters standing alone never do.
+            s, counts = score(re.sub(SOLO_LETTER, "", SYSTEM_PROMPT + "\n" + text))
             broken = problems(text, words)
             if broken:
                 s = 0.0
