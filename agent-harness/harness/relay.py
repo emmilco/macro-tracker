@@ -35,8 +35,7 @@ your reply prefixed with an unchangeable copy of these instructions, so
 their letters count too. A score of 1.0 is a perfect ratio.
 
 Replies longer than {MAX_BYTES // 1024} KB ({MAX_BYTES} bytes) are cut off at that
-length before
-scoring and before being passed on.
+length before scoring and before being passed on.
 
 Rules: your reply must consist only of complete sentences, each starting
 with a capital letter and ending with . ! or ?, and every word must be an
