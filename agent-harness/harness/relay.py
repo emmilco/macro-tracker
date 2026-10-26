@@ -5,9 +5,9 @@ from harness.llm import call_model
 
 TARGET = {"n": 1, "p": 1, "c": 5}
 GENERATIONS = 50
-# Request fields that turn reasoning off. UNVERIFIED: fill in whatever
-# DeepSeek's docs say for your model; {} sends nothing extra.
-NO_REASONING = {}
+# Thinking is on by default; this request field turns it off (per
+# DeepSeek's thinking-mode guide, seen via search, not tested here).
+NO_REASONING = {"thinking": {"type": "disabled"}}
 
 SYSTEM_PROMPT = """\
 You are one session in a chain. You receive exactly one message: the reply
