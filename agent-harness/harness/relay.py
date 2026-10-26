@@ -17,9 +17,9 @@ PLANNING = 10  # unscored sessions before scoring starts
 GENERATIONS = 50  # scored sessions after that
 SESSIONS = PLANNING + GENERATIONS
 MAX_BYTES = 10240  # replies are cut off at this length
-# Thinking is on by default; this request field turns it off (per
-# DeepSeek's thinking-mode guide, seen via search, not tested here).
-NO_REASONING = {"thinking": {"type": "disabled"}}
+# DeepSeek's thinking mode: "enabled" lets the model reason before it
+# replies, "disabled" turns that off. The reasoning is never passed on.
+THINKING = {"thinking": {"type": "enabled"}}
 
 SYSTEM_PROMPT = f"""\
 You are one session in a chain. You receive exactly one message: the reply
@@ -110,15 +110,13 @@ def main():
         for gen in range(SESSIONS):
             system = {"role": "system", "content": SYSTEM_PROMPT}
             user = {"role": "user", "content": message}
-            reply = call_model([system, user], extra=NO_REASONING)
+            reply = call_model([system, user], extra=THINKING)
             text = reply["message"].get("content") or ""
             if len(text.encode()) > MAX_BYTES:
                 text = text.encode()[:MAX_BYTES].decode(errors="ignore")
                 print(f"\n[truncated] gen {gen} reply cut to {MAX_BYTES} bytes")
             if reply.get("finish_reason") == "length":
                 print(f"\n[warning] gen {gen} hit the model's output token limit")
-            if reply["message"].get("reasoning_content"):
-                print(f"\n[warning] gen {gen} reasoned before replying")
             next_session = f"[harness] you are session {gen + 2} of {SESSIONS}."
             if gen < PLANNING:
                 print(f"\n--- gen {gen}  (planning, not scored)\n{text}")
