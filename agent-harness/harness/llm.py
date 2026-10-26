@@ -5,7 +5,7 @@ import urllib.request
 
 # DeepSeek speaks the OpenAI "chat completions" format.
 URL = "https://api.deepseek.com/chat/completions"
-MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-flash")
+MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
 
 
 def call_model(messages, tools):
