@@ -42,7 +42,10 @@ English dictionary word (single letters other than "a" and "I" don't count).
 A reply that breaks these rules scores 0, and the harness lists the problems.
 
 The chain has {GENERATIONS} sessions in all, and the harness tells each
-session its number. Act strategically with that many turns in mind.
+session its number. Make a plan that uses those turns. You do not need
+a high score along the way: low or zero scores while you work toward a
+solution cost nothing. The only requirement is that some session reaches
+a score of 1.0 by session {GENERATIONS}.
 
 This problem is difficult. Reason it through carefully before you
 commit to an answer."""
