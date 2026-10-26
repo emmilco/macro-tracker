@@ -44,7 +44,10 @@ def main():
             return
         if user_text:
             # `messages` persists across turns, so the agent remembers them.
-            print(f"\nagent> {run_turn(messages, user_text)}")
+            try:
+                print(f"\nagent> {run_turn(messages, user_text)}")
+            except Exception as e:  # keep the session (and its history) alive
+                print(f"\n[error] {type(e).__name__}: {e}")
 
 
 if __name__ == "__main__":

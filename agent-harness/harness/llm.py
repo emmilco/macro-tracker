@@ -1,6 +1,7 @@
 """Model client: sends the conversation to the DeepSeek API, returns its reply."""
 import json
 import os
+import urllib.error
 import urllib.request
 
 # DeepSeek speaks the OpenAI "chat completions" format.
@@ -23,8 +24,12 @@ def call_model(messages, tools):
             "Authorization": f"Bearer {os.environ['DEEPSEEK_API_KEY']}",
         },
     )
-    with urllib.request.urlopen(request, timeout=120) as response:
-        data = json.load(response)
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response:
+            data = json.load(response)
+    except urllib.error.HTTPError as e:
+        # The body says *why* the request was rejected; urllib hides it.
+        raise RuntimeError(f"HTTP {e.code}: {e.read().decode()}") from None
     # We return the whole "choice", which looks like:
     #   {"message": {"role": "assistant", "content": "...", "tool_calls": [...]},
     #    "finish_reason": "stop" | "tool_calls" | "length" | ...}
