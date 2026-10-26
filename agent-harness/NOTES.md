@@ -29,3 +29,10 @@ protected, and tool calls are never split from their results. After a
 `replace_messages`, further history calls in the same reply are refused
 (their indexes are stale). Untested against DeepSeek: a replacement is an
 `assistant` message, which can put two assistant messages in a row.
+
+`rewind(index, content)` rewrites one of the agent's own messages and erases
+everything after it, user messages included (option C). The loop notices the
+in-flight reply is gone, drops that reply's remaining calls, and calls the
+model again from the rewound point. Rewinds count against `MAX_STEPS`.
+Untested against DeepSeek: after a rewind the history ends on an assistant
+message, which the API may reject or treat as a prefix to continue.
