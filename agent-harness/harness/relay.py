@@ -1,7 +1,12 @@
 """Relay: each session gets one message, writes one reply, and that reply
 (plus the harness's score of it) is the only input the next session gets."""
 import json
+import os
+import re
 from harness.llm import call_model
+
+# A plain word list, one word per line. macOS ships one at this path.
+DICT_PATH = os.environ.get("DICT_PATH", "/usr/share/dict/words")
 
 TARGET = {"n": 1, "p": 1, "c": 5}
 GENERATIONS = 50
@@ -27,6 +32,11 @@ their letters count too. A score of 1.0 is a perfect ratio.
 Replies longer than 1 KB (1024 bytes) are cut off at that length before
 scoring and before being passed on.
 
+Rules: your reply must consist only of complete sentences, each starting
+with a capital letter and ending with . ! or ?, and every word must be an
+English dictionary word (single letters other than "a" and "I" don't count).
+A reply that breaks these rules scores 0, and the harness lists the problems.
+
 This problem is difficult. Reason it through carefully before you
 commit to an answer."""
 MAX_BYTES = 1024
@@ -43,7 +53,32 @@ def score(text):
     return round(1 - off / 2, 4), counts
 
 
+def load_words():
+    with open(DICT_PATH) as f:
+        words = {line.strip().lower() for line in f}
+    # Many word lists include every single letter; only "a" and "I" count.
+    return {w for w in words if len(w) > 1} | {"a", "i"}
+
+
+def problems(text, words):
+    """The ways the reply breaks the rules (empty if none). This checks the
+    form of sentences, not their grammar: that can't be checked cheaply."""
+    found = []
+    sentences = re.findall(r"[^.!?]+[.!?]", text)
+    if not sentences or re.sub(r"[^.!?]+[.!?]", "", text).strip():
+        found.append("text outside complete sentences")
+    for s in sentences:
+        if not s.strip()[0].isupper():
+            found.append(f"sentence starts without a capital: {s.strip()[:30]!r}")
+    for token in text.split():
+        word = token.strip(".,;:!?\"'()")
+        if word and word.lower() not in words:
+            found.append(f"not a dictionary word: {word!r}")
+    return found[:5]  # a few examples are enough feedback
+
+
 def main():
+    words = load_words()
     message = "(You are the first session. There is no previous reply.)"
     with open("relay_log.jsonl", "a") as log:
         for gen in range(GENERATIONS):
@@ -57,9 +92,14 @@ def main():
             if reply["message"].get("reasoning_content"):
                 print(f"\n[warning] gen {gen} reasoned before replying")
             s, counts = score(SYSTEM_PROMPT + "\n" + text)  # instructions count
-            print(f"\n--- gen {gen}  score {s:.4f}  {counts}\n{text}")
+            broken = problems(text, words)
+            if broken:
+                s = 0.0
+            print(f"\n--- gen {gen}  score {s:.4f}  {counts}  {broken or ''}\n{text}")
             log.write(json.dumps({"gen": gen, "score": s, "reply": text}) + "\n")
             message = f"{text}\n\n[harness] score {s} counts {counts}"
+            if broken:
+                message += f" rule violations: {broken}"
 
 
 if __name__ == "__main__":
