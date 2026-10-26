@@ -3,6 +3,7 @@
 Unlike the tools in tools.py, these receive `messages` and change it in
 place, so main.py (which holds the same list) sees the edits.
 """
+import json
 
 
 def _editable(messages):
@@ -44,3 +45,36 @@ def replace_messages(messages, start, end, content):
         return "Error: range would split a tool call from its result."
     messages[start:end + 1] = [{"role": "assistant", "content": content}]
     return f"Replaced messages {start}-{end} with one message."
+
+
+def _schema(name, description, properties, required):
+    return {"type": "function", "function": {
+        "name": name, "description": description,
+        "parameters": {"type": "object", "properties": properties,
+                       "required": required}}}
+
+
+_INT = {"type": "integer"}
+_TEXT = {"type": "string"}
+SCHEMAS = [
+    _schema("view_history", "Show your conversation so far, one indexed line "
+            "per message, and which indexes you are allowed to change.", {}, []),
+    _schema("edit_message", "Replace the text of one earlier message.",
+            {"index": _INT, "content": _TEXT}, ["index", "content"]),
+    _schema("replace_messages", "Replace messages start..end (inclusive) "
+            "with a single message you write, e.g. a summary of them.",
+            {"start": _INT, "end": _INT, "content": _TEXT},
+            ["start", "end", "content"]),
+]
+
+FUNCTIONS = {"view_history": view_history, "edit_message": edit_message,
+             "replace_messages": replace_messages}
+
+
+def run_history_tool(name, arguments_json, messages):
+    """Like tools.run_tool, but the function also gets the conversation."""
+    try:
+        args = json.loads(arguments_json or "{}")
+        return str(FUNCTIONS[name](messages, **args))
+    except Exception as e:
+        return f"Error: {type(e).__name__}: {e}"
