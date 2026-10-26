@@ -3,7 +3,9 @@ from harness.llm import call_model
 from harness import history_tools
 from harness.tools import SCHEMAS, run_tool
 
-ALL_SCHEMAS = SCHEMAS + history_tools.SCHEMAS
+# File tools (SCHEMAS from tools.py) are left out for now, so only the
+# history tools are offered. Add them back with: SCHEMAS + history_tools.SCHEMAS
+ALL_SCHEMAS = history_tools.SCHEMAS
 
 MAX_STEPS = 10  # a safety stop, so a confused model can't loop forever
 

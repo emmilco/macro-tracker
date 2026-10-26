@@ -75,7 +75,7 @@ SCHEMAS = [
     _schema("edit_message", "Replace the text of one earlier message.",
             {"index": _INT, "content": _TEXT}, ["index", "content"]),
     _schema("replace_messages", "Replace messages start..end (inclusive) "
-            "with a single message you write, e.g. a summary of them.",
+            "with a single message you write.",
             {"start": _INT, "end": _INT, "content": _TEXT},
             ["start", "end", "content"]),
     _schema("rewind", "Go back in time: rewrite one of your own earlier "
