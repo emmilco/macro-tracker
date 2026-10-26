@@ -13,7 +13,9 @@ _DEFAULT_DICT = os.path.join(os.path.dirname(__file__), "..", "wordlist",
 DICT_PATH = os.environ.get("DICT_PATH", _DEFAULT_DICT)
 
 TARGET = {"n": 1, "p": 1, "c": 5}
-GENERATIONS = 50
+PLANNING = 10  # unscored sessions before scoring starts
+GENERATIONS = 50  # scored sessions after that
+SESSIONS = PLANNING + GENERATIONS
 MAX_BYTES = 10240  # replies are cut off at this length
 # Thinking is on by default; this request field turns it off (per
 # DeepSeek's thinking-mode guide, seen via search, not tested here).
@@ -44,11 +46,14 @@ English dictionary word, a number written in digits (such as 101, 3.5 or
 the n in "the letter n", is allowed but is never counted in the score.
 A reply that breaks these rules scores 0, and the harness lists the problems.
 
-The chain has {GENERATIONS} sessions in all, and the harness tells each
-session its number. Make a plan that uses those turns. You do not need
-a high score along the way: low or zero scores while you work toward a
-solution cost nothing. The only requirement is that some session reaches
-a score of 1.0 by session {GENERATIONS}.
+The chain has {SESSIONS} sessions in all, and the harness tells each
+session its number. The first {PLANNING} are planning sessions: their
+replies are not scored or checked against the rules, and the harness
+reports nothing about them. Scoring starts at session {PLANNING + 1}.
+Make a plan that uses those turns. You do not need a high score along
+the way: low or zero scores while you work toward a solution cost
+nothing. The only requirement is that some session reaches a score of
+1.0 by session {SESSIONS}.
 
 This problem is difficult. Reason it through carefully before you
 commit to an answer."""
@@ -100,9 +105,9 @@ def problems(text, words):
 
 def main():
     words = load_words()
-    message = f"(You are session 1 of {GENERATIONS}. There is no previous reply.)"
+    message = f"(You are session 1 of {SESSIONS}. There is no previous reply.)"
     with open("relay_log.jsonl", "a") as log:
-        for gen in range(GENERATIONS):
+        for gen in range(SESSIONS):
             system = {"role": "system", "content": SYSTEM_PROMPT}
             user = {"role": "user", "content": message}
             reply = call_model([system, user], extra=NO_REASONING)
@@ -114,6 +119,12 @@ def main():
                 print(f"\n[warning] gen {gen} hit the model's output token limit")
             if reply["message"].get("reasoning_content"):
                 print(f"\n[warning] gen {gen} reasoned before replying")
+            next_session = f"[harness] you are session {gen + 2} of {SESSIONS}."
+            if gen < PLANNING:
+                print(f"\n--- gen {gen}  (planning, not scored)\n{text}")
+                log.write(json.dumps({"gen": gen, "reply": text}) + "\n")
+                message = f"{text}\n\n{next_session}"
+                continue
             # The instructions count too; letters standing alone never do.
             s, counts = score(re.sub(SOLO_LETTER, "", SYSTEM_PROMPT + "\n" + text))
             broken = problems(text, words)
@@ -121,8 +132,8 @@ def main():
                 s = 0.0
             print(f"\n--- gen {gen}  score {s:.4f}  {counts}  {broken or ''}\n{text}")
             log.write(json.dumps({"gen": gen, "score": s, "reply": text}) + "\n")
-            message = (f"{text}\n\n[harness] you are session {gen + 2} of "
-                       f"{GENERATIONS}. Previous reply: score {s} counts {counts}")
+            message = (f"{text}\n\n{next_session} "
+                       f"Previous reply: score {s} counts {counts}")
             if broken:
                 message += f" rule violations: {broken}"
 
