@@ -32,7 +32,8 @@ protected, and tool calls are never split from their results. After a
 
 `rewind(index, content)` rewrites one of the agent's own messages and erases
 everything after it, user messages included (option C). The loop notices the
-in-flight reply is gone, drops that reply's remaining calls, and calls the
-model again from the rewound point. Rewinds count against `MAX_STEPS`.
-Untested against DeepSeek: after a rewind the history ends on an assistant
-message, which the API may reject or treat as a prefix to continue.
+in-flight reply is gone, drops that reply's remaining calls, and ends the
+turn: the rewritten message is the agent's last word, and the user speaks
+next. (Continuing straight from the rewound point got an HTTP 400 from
+DeepSeek, probably because the history ended on an assistant message;
+the error body wasn't captured, so that cause is unconfirmed.)

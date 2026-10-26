@@ -44,10 +44,12 @@ def run_turn(messages, user_text):
                 indexes_moved = name == "replace_messages"
             # If the reply that made this call is gone from history, the
             # agent rewound past it: there is no call left to answer, and
-            # the reply's remaining calls belong to an erased future.
+            # the reply's remaining calls belong to an erased future. The
+            # rewritten message is now the agent's last word, so the turn
+            # ends there and the user speaks next.
             if not any(m is reply for m in messages):
                 print(f"  [rewind] {result}")
-                break
+                return messages[-1]["content"]
             messages.append({
                 "role": "tool",
                 "tool_call_id": call["id"],
