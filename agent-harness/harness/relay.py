@@ -5,8 +5,12 @@ import os
 import re
 from harness.llm import call_model
 
-# A plain word list, one word per line. macOS ships one at this path.
-DICT_PATH = os.environ.get("DICT_PATH", "/usr/share/dict/words")
+# A plain word list, one word per line. The default is SCOWL's American
+# English list (from Debian's wamerican), which includes plurals and verb
+# forms; see wordlist/COPYRIGHT.
+_DEFAULT_DICT = os.path.join(os.path.dirname(__file__), "..", "wordlist",
+                             "american-english")
+DICT_PATH = os.environ.get("DICT_PATH", _DEFAULT_DICT)
 
 TARGET = {"n": 1, "p": 1, "c": 5}
 GENERATIONS = 50
