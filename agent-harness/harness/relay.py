@@ -18,7 +18,7 @@ GENERATIONS = 50
 # DeepSeek's thinking-mode guide, seen via search, not tested here).
 NO_REASONING = {"thinking": {"type": "disabled"}}
 
-SYSTEM_PROMPT = """\
+SYSTEM_PROMPT = f"""\
 You are one session in a chain. You receive exactly one message: the reply
 written by the previous session, followed by the harness's score of it.
 You write exactly one reply. That reply is all the next session receives.
@@ -40,6 +40,9 @@ Rules: your reply must consist only of complete sentences, each starting
 with a capital letter and ending with . ! or ?, and every word must be an
 English dictionary word (single letters other than "a" and "I" don't count).
 A reply that breaks these rules scores 0, and the harness lists the problems.
+
+The chain has {GENERATIONS} sessions in all, and the harness tells each
+session its number. Act strategically with that many turns in mind.
 
 This problem is difficult. Reason it through carefully before you
 commit to an answer."""
@@ -83,7 +86,7 @@ def problems(text, words):
 
 def main():
     words = load_words()
-    message = "(You are the first session. There is no previous reply.)"
+    message = f"(You are session 1 of {GENERATIONS}. There is no previous reply.)"
     with open("relay_log.jsonl", "a") as log:
         for gen in range(GENERATIONS):
             system = {"role": "system", "content": SYSTEM_PROMPT}
@@ -101,7 +104,8 @@ def main():
                 s = 0.0
             print(f"\n--- gen {gen}  score {s:.4f}  {counts}  {broken or ''}\n{text}")
             log.write(json.dumps({"gen": gen, "score": s, "reply": text}) + "\n")
-            message = f"{text}\n\n[harness] score {s} counts {counts}"
+            message = (f"{text}\n\n[harness] you are session {gen + 2} of "
+                       f"{GENERATIONS}. Previous reply: score {s} counts {counts}")
             if broken:
                 message += f" rule violations: {broken}"
 
