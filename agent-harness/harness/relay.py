@@ -20,10 +20,9 @@ MAX_BYTES = 10240  # replies are cut off at this length
 # DeepSeek's thinking mode: "enabled" lets the model reason before it
 # replies, "disabled" turns that off. The reasoning is never passed on.
 THINKING = {"thinking": {"type": "enabled"}}
-# With LLM=claude: Opus 4.6 with thinking off. (Opus 5.5 and Fable 5.1 cannot
-# turn thinking off; the refusal fallback is left out for this older model.)
-CLAUDE = {"model": "claude-opus-4-6", "thinking": {"type": "disabled"},
-          "fallbacks": None}
+# With LLM=claude: Fable 5.1 at low effort. Its thinking cannot be turned
+# off; effort "low" keeps it as short as it goes.
+CLAUDE = {"model": "claude-fable-5-1", "output_config": {"effort": "low"}}
 
 SYSTEM_PROMPT = f"""\
 You are one session in a chain. You receive exactly one message: the reply
