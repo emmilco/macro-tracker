@@ -12,7 +12,7 @@ _DEFAULT_DICT = os.path.join(os.path.dirname(__file__), "..", "wordlist",
                              "american-english")
 DICT_PATH = os.environ.get("DICT_PATH", _DEFAULT_DICT)
 
-TARGET = {"n": 1, "p": 1, "c": 5}
+TARGET = {"n": 2, "p": 1, "c": 2}
 PLANNING = 10  # unscored sessions before scoring starts
 GENERATIONS = 50  # scored sessions after that
 SESSIONS = PLANNING + GENERATIONS
@@ -33,7 +33,7 @@ No session remembers anything else: the next session knows only what you
 write now. Any information you don't put in your reply is lost for good.
 
 The goal: write a reply whose letters n, p and c appear in the ratio
-1:1:5 (case-insensitive; all other characters are ignored). Your whole
+{TARGET["n"]}:{TARGET["p"]}:{TARGET["c"]} (case-insensitive; all other characters are ignored). Your whole
 reply is scored, including any notes you leave for the next session.
 Each reply is scored on its own: nothing carries over from earlier
 replies, and you are not adding to a running total. The scored text is
