@@ -9,15 +9,16 @@ URL = "https://api.deepseek.com/chat/completions"
 MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
 
 
-def call_model(messages, tools=None, extra=None):
+def call_model(messages, tools=None, extra=None, claude=None):
     """Send the whole conversation plus tool schemas; return the reply message.
 
     The API is stateless: it remembers nothing between calls, so the
     caller must send the full history every time. `extra` holds any
-    other request fields (e.g. a setting that turns reasoning off).
+    other request fields (e.g. a setting that turns reasoning off), and
+    `claude` holds Claude request fields, used when LLM=claude.
     """
     if os.environ.get("LLM") == "claude" and not tools:
-        return call_claude(messages)  # defined below; ignores DeepSeek extras
+        return call_claude(messages, claude)  # defined below
     body = {"model": MODEL, "messages": messages, **(extra or {})}
     if tools:
         body["tools"] = tools
@@ -48,14 +49,14 @@ def call_model(messages, tools=None, extra=None):
 # tool-calling agent in agent.py still needs DeepSeek's format.
 CLAUDE_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-fable-5-1")
-CLAUDE_EFFORT = os.environ.get("CLAUDE_EFFORT", "high")  # low..max
+CLAUDE_EFFORT = os.environ.get("HARNESS_CLAUDE_EFFORT", "high")  # low..max
 # Claude says why it stopped differently; map it to DeepSeek's words.
 _STOP = {"end_turn": "stop", "max_tokens": "length", "refusal": "refusal"}
 
 
-def call_claude(messages):
-    """Same reply shape as call_model, but from Claude. Thinking is always on
-    for this model; effort sets how hard it thinks."""
+def call_claude(messages, options=None):
+    """Same reply shape as call_model, but from Claude. `options` overrides
+    request fields; a field set to None is left out of the request."""
     system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
     body = {
         "model": CLAUDE_MODEL,
@@ -65,6 +66,8 @@ def call_claude(messages):
         "output_config": {"effort": CLAUDE_EFFORT},
         "fallbacks": "default",  # if this model declines, another one answers
     }
+    body.update(options or {})
+    body = {k: v for k, v in body.items() if v is not None}
     key = os.environ.get("ANTHROPIC_API_KEY") or os.environ["API_KEY"]
     request = urllib.request.Request(CLAUDE_URL, data=json.dumps(body).encode(), headers={
         "content-type": "application/json",

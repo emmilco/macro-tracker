@@ -20,6 +20,10 @@ MAX_BYTES = 10240  # replies are cut off at this length
 # DeepSeek's thinking mode: "enabled" lets the model reason before it
 # replies, "disabled" turns that off. The reasoning is never passed on.
 THINKING = {"thinking": {"type": "enabled"}}
+# With LLM=claude: Opus 4.6 with thinking off. (Opus 5.5 and Fable 5.1 cannot
+# turn thinking off; the refusal fallback is left out for this older model.)
+CLAUDE = {"model": "claude-opus-4-6", "thinking": {"type": "disabled"},
+          "fallbacks": None}
 
 SYSTEM_PROMPT = f"""\
 You are one session in a chain. You receive exactly one message: the reply
@@ -110,7 +114,7 @@ def main():
         for gen in range(SESSIONS):
             system = {"role": "system", "content": SYSTEM_PROMPT}
             user = {"role": "user", "content": message}
-            reply = call_model([system, user], extra=THINKING)
+            reply = call_model([system, user], extra=THINKING, claude=CLAUDE)
             text = reply["message"].get("content") or ""
             if len(text.encode()) > MAX_BYTES:
                 text = text.encode()[:MAX_BYTES].decode(errors="ignore")
