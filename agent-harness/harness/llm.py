@@ -47,7 +47,7 @@ def call_model(messages, tools=None, extra=None):
 # Used instead of DeepSeek when LLM=claude. Only plain text in and out: the
 # tool-calling agent in agent.py still needs DeepSeek's format.
 CLAUDE_URL = "https://api.anthropic.com/v1/messages"
-CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-opus-5-5")
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-fable-5-1")
 CLAUDE_EFFORT = os.environ.get("CLAUDE_EFFORT", "high")  # low..max
 # Claude says why it stopped differently; map it to DeepSeek's words.
 _STOP = {"end_turn": "stop", "max_tokens": "length", "refusal": "refusal"}
